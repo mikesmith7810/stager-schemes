@@ -1,0 +1,34 @@
+services:
+  db:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: stager_schemes
+      MYSQL_USER: stager
+      MYSQL_PASSWORD: stager
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "stager", "-pstager"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:mysql://db:3306/stager_schemes?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USERNAME: stager
+      DB_PASSWORD: stager
+      APP_USERNAME: admin
+      APP_PASSWORD: ${APP_PASSWORD:-$$2a$$10$$cSY7mg6Mc67Evx4iQE8h6OiGGiP9yqJdWI3OvZtsiStMMTKsJVfey}
+
+volumes:
+  mysql_data:

@@ -1,0 +1,242 @@
+package com.ms.stagerschemes.service;
+
+import com.ms.stagerschemes.component.SchemePriceCalculator;
+import com.ms.stagerschemes.component.SchemeRoomCopier;
+import com.ms.stagerschemes.dto.AddItemToSchemeRoomRequest;
+import com.ms.stagerschemes.dto.AddPackToSchemeRoomRequest;
+import com.ms.stagerschemes.dto.AddRoomToSchemeRequest;
+import com.ms.stagerschemes.dto.SchemeRequest;
+import com.ms.stagerschemes.dto.SchemeResponse;
+import com.ms.stagerschemes.dto.SchemeRoomItemResponse;
+import com.ms.stagerschemes.dto.SchemeRoomPackResponse;
+import com.ms.stagerschemes.dto.SchemeRoomSummary;
+import com.ms.stagerschemes.dto.SchemeSummaryResponse;
+import com.ms.stagerschemes.model.Item;
+import com.ms.stagerschemes.model.Pack;
+import com.ms.stagerschemes.model.Room;
+import com.ms.stagerschemes.model.Scheme;
+import com.ms.stagerschemes.model.SchemeRoom;
+import com.ms.stagerschemes.model.SchemeRoomItem;
+import com.ms.stagerschemes.model.SchemeRoomPack;
+import com.ms.stagerschemes.repository.ItemRepository;
+import com.ms.stagerschemes.repository.PackRepository;
+import com.ms.stagerschemes.repository.RoomRepository;
+import com.ms.stagerschemes.repository.SchemeRepository;
+import com.ms.stagerschemes.repository.SchemeRoomItemRepository;
+import com.ms.stagerschemes.repository.SchemeRoomPackRepository;
+import com.ms.stagerschemes.repository.SchemeRoomRepository;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.NoSuchElementException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class SchemeService {
+
+  private final SchemeRepository schemeRepository;
+  private final SchemeRoomRepository schemeRoomRepository;
+  private final SchemeRoomItemRepository schemeRoomItemRepository;
+  private final SchemeRoomPackRepository schemeRoomPackRepository;
+  private final RoomRepository roomRepository;
+  private final ItemRepository itemRepository;
+  private final PackRepository packRepository;
+  private final SchemePriceCalculator schemePriceCalculator;
+  private final SchemeRoomCopier schemeRoomCopier;
+
+  public SchemeService(
+      SchemeRepository schemeRepository,
+      SchemeRoomRepository schemeRoomRepository,
+      SchemeRoomItemRepository schemeRoomItemRepository,
+      SchemeRoomPackRepository schemeRoomPackRepository,
+      RoomRepository roomRepository,
+      ItemRepository itemRepository,
+      PackRepository packRepository,
+      SchemePriceCalculator schemePriceCalculator,
+      SchemeRoomCopier schemeRoomCopier) {
+    this.schemeRepository = schemeRepository;
+    this.schemeRoomRepository = schemeRoomRepository;
+    this.schemeRoomItemRepository = schemeRoomItemRepository;
+    this.schemeRoomPackRepository = schemeRoomPackRepository;
+    this.roomRepository = roomRepository;
+    this.itemRepository = itemRepository;
+    this.packRepository = packRepository;
+    this.schemePriceCalculator = schemePriceCalculator;
+    this.schemeRoomCopier = schemeRoomCopier;
+  }
+
+  @Transactional(readOnly = true)
+  public List<SchemeResponse> findAllSchemes() {
+    return schemeRepository.findAll().stream()
+        .map(
+            scheme ->
+                new SchemeResponse(
+                    scheme.getId(),
+                    scheme.getName(),
+                    schemePriceCalculator.calculateTotalPrice(scheme)))
+        .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public SchemeResponse findSchemeById(Long schemeId) {
+    Scheme scheme =
+        schemeRepository
+            .findById(schemeId)
+            .orElseThrow(() -> new NoSuchElementException("Scheme not found: " + schemeId));
+    return new SchemeResponse(
+        scheme.getId(), scheme.getName(), schemePriceCalculator.calculateTotalPrice(scheme));
+  }
+
+  @Transactional
+  public SchemeResponse createScheme(SchemeRequest schemeRequest) {
+    Scheme savedScheme = schemeRepository.save(new Scheme(schemeRequest.name()));
+    return new SchemeResponse(savedScheme.getId(), savedScheme.getName(), BigDecimal.ZERO);
+  }
+
+  @Transactional
+  public SchemeResponse updateScheme(Long schemeId, SchemeRequest schemeRequest) {
+    Scheme scheme =
+        schemeRepository
+            .findById(schemeId)
+            .orElseThrow(() -> new NoSuchElementException("Scheme not found: " + schemeId));
+    scheme.setName(schemeRequest.name());
+    Scheme savedScheme = schemeRepository.save(scheme);
+    return new SchemeResponse(
+        savedScheme.getId(),
+        savedScheme.getName(),
+        schemePriceCalculator.calculateTotalPrice(savedScheme));
+  }
+
+  @Transactional
+  public void deleteScheme(Long schemeId) {
+    if (!schemeRepository.existsById(schemeId)) {
+      throw new NoSuchElementException("Scheme not found: " + schemeId);
+    }
+    schemeRepository.deleteById(schemeId);
+  }
+
+  @Transactional(readOnly = true)
+  public SchemeSummaryResponse getSchemeSummary(Long schemeId) {
+    Scheme scheme =
+        schemeRepository
+            .findById(schemeId)
+            .orElseThrow(() -> new NoSuchElementException("Scheme not found: " + schemeId));
+
+    List<SchemeRoomSummary> roomSummaries =
+        scheme.getSchemeRooms().stream().map(this::toSchemeRoomSummary).toList();
+
+    BigDecimal totalPrice = schemePriceCalculator.calculateTotalPrice(scheme);
+    return new SchemeSummaryResponse(scheme.getId(), scheme.getName(), roomSummaries, totalPrice);
+  }
+
+  @Transactional
+  public SchemeRoomSummary addRoomToScheme(Long schemeId, AddRoomToSchemeRequest addRoomToSchemeRequest) {
+    Scheme scheme =
+        schemeRepository
+            .findById(schemeId)
+            .orElseThrow(() -> new NoSuchElementException("Scheme not found: " + schemeId));
+    Room room =
+        roomRepository
+            .findById(addRoomToSchemeRequest.roomId())
+            .orElseThrow(
+                () ->
+                    new NoSuchElementException(
+                        "Room not found: " + addRoomToSchemeRequest.roomId()));
+    SchemeRoom schemeRoom = schemeRoomCopier.copyRoomToScheme(scheme, room);
+    return toSchemeRoomSummary(schemeRoom);
+  }
+
+  @Transactional
+  public void removeRoomFromScheme(Long schemeId, Long schemeRoomId) {
+    SchemeRoom schemeRoom =
+        schemeRoomRepository
+            .findById(schemeRoomId)
+            .orElseThrow(() -> new NoSuchElementException("SchemeRoom not found: " + schemeRoomId));
+    if (!schemeRoom.getScheme().getId().equals(schemeId)) {
+      throw new IllegalArgumentException(
+          "SchemeRoom " + schemeRoomId + " does not belong to scheme " + schemeId);
+    }
+    schemeRoomRepository.delete(schemeRoom);
+  }
+
+  @Transactional
+  public SchemeRoomSummary addItemToSchemeRoom(
+      Long schemeRoomId, AddItemToSchemeRoomRequest addItemToSchemeRoomRequest) {
+    SchemeRoom schemeRoom =
+        schemeRoomRepository
+            .findById(schemeRoomId)
+            .orElseThrow(() -> new NoSuchElementException("SchemeRoom not found: " + schemeRoomId));
+    Item item =
+        itemRepository
+            .findById(addItemToSchemeRoomRequest.itemId())
+            .orElseThrow(
+                () ->
+                    new NoSuchElementException(
+                        "Item not found: " + addItemToSchemeRoomRequest.itemId()));
+    schemeRoomItemRepository.save(
+        new SchemeRoomItem(schemeRoom, item, addItemToSchemeRoomRequest.quantity()));
+    return toSchemeRoomSummary(schemeRoomRepository.findById(schemeRoomId).orElseThrow());
+  }
+
+  @Transactional
+  public void removeItemFromSchemeRoom(Long schemeRoomId, Long itemId) {
+    SchemeRoom schemeRoom =
+        schemeRoomRepository
+            .findById(schemeRoomId)
+            .orElseThrow(() -> new NoSuchElementException("SchemeRoom not found: " + schemeRoomId));
+    SchemeRoomItem schemeRoomItem =
+        schemeRoom.getSchemeRoomItems().stream()
+            .filter(sri -> sri.getItem().getId().equals(itemId))
+            .findFirst()
+            .orElseThrow(() -> new NoSuchElementException("Item not in scheme room: " + itemId));
+    schemeRoomItemRepository.delete(schemeRoomItem);
+  }
+
+  @Transactional
+  public SchemeRoomSummary addPackToSchemeRoom(
+      Long schemeRoomId, AddPackToSchemeRoomRequest addPackToSchemeRoomRequest) {
+    SchemeRoom schemeRoom =
+        schemeRoomRepository
+            .findById(schemeRoomId)
+            .orElseThrow(() -> new NoSuchElementException("SchemeRoom not found: " + schemeRoomId));
+    Pack pack =
+        packRepository
+            .findById(addPackToSchemeRoomRequest.packId())
+            .orElseThrow(
+                () ->
+                    new NoSuchElementException(
+                        "Pack not found: " + addPackToSchemeRoomRequest.packId()));
+    schemeRoomPackRepository.save(
+        new SchemeRoomPack(schemeRoom, pack, addPackToSchemeRoomRequest.quantity()));
+    return toSchemeRoomSummary(schemeRoomRepository.findById(schemeRoomId).orElseThrow());
+  }
+
+  @Transactional
+  public void removePackFromSchemeRoom(Long schemeRoomId, Long packId) {
+    SchemeRoom schemeRoom =
+        schemeRoomRepository
+            .findById(schemeRoomId)
+            .orElseThrow(() -> new NoSuchElementException("SchemeRoom not found: " + schemeRoomId));
+    SchemeRoomPack schemeRoomPack =
+        schemeRoom.getSchemeRoomPacks().stream()
+            .filter(srp -> srp.getPack().getId().equals(packId))
+            .findFirst()
+            .orElseThrow(() -> new NoSuchElementException("Pack not in scheme room: " + packId));
+    schemeRoomPackRepository.delete(schemeRoomPack);
+  }
+
+  private SchemeRoomSummary toSchemeRoomSummary(SchemeRoom schemeRoom) {
+    List<SchemeRoomItemResponse> itemResponses =
+        schemeRoom.getSchemeRoomItems().stream().map(SchemeRoomItemResponse::from).toList();
+    List<SchemeRoomPackResponse> packResponses =
+        schemeRoom.getSchemeRoomPacks().stream().map(SchemeRoomPackResponse::from).toList();
+    BigDecimal roomTotal = schemePriceCalculator.calculateSchemeRoomPrice(schemeRoom);
+    return new SchemeRoomSummary(
+        schemeRoom.getId(),
+        schemeRoom.getRoom().getId(),
+        schemeRoom.getName(),
+        itemResponses,
+        packResponses,
+        roomTotal);
+  }
+}

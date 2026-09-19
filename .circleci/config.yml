@@ -1,0 +1,25 @@
+version: 2.1
+
+jobs:
+  build-and-test:
+    docker:
+      - image: maven:3.9-eclipse-temurin-21
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - maven-{{ checksum "backend/pom.xml" }}
+      - run:
+          name: Run backend tests
+          command: mvn -f backend/pom.xml test
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: maven-{{ checksum "backend/pom.xml" }}
+      - store_test_results:
+          path: backend/target/surefire-reports
+
+workflows:
+  build-and-test:
+    jobs:
+      - build-and-test
