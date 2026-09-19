@@ -68,6 +68,7 @@ function SchemeRoomEditor({ schemeRoom, schemeId, allItems, allPacks, onUpdate, 
   };
 
   const handleRemoveRoom = async () => {
+    if (!window.confirm(`Remove room "${schemeRoom.name}" from this scheme?`)) return;
     setError(null);
     try {
       await schemesApi.removeRoom(schemeId, schemeRoom.id);
@@ -113,7 +114,7 @@ function SchemeRoomEditor({ schemeRoom, schemeId, allItems, allPacks, onUpdate, 
                 <span className="price-muted">{formatPrice(item.lineTotal)}</span>
                 <button
                   className="btn btn-ghost btn-sm"
-                  onClick={() => handleRemoveItem(item.itemId)}
+                  onClick={() => handleRemoveItem(item.id)}
                 >
                   &times;
                 </button>
@@ -163,7 +164,7 @@ function SchemeRoomEditor({ schemeRoom, schemeId, allItems, allPacks, onUpdate, 
                   <span className="price-muted">{formatPrice(pack.packTotal)}</span>
                   <button
                     className="btn btn-ghost btn-sm"
-                    onClick={() => handleRemovePack(pack.packId)}
+                    onClick={() => handleRemovePack(pack.id)}
                   >
                     &times;
                   </button>
@@ -218,6 +219,9 @@ export default function AddScheme() {
   const { id } = useParams();
   const [schemeName, setSchemeName] = useState('');
   const [scheme, setScheme] = useState(null);
+  const [renamingScheme, setRenamingScheme] = useState(false);
+  const [renameValue, setRenameValue] = useState('');
+  const [renameSaving, setRenameSaving] = useState(false);
   const [summary, setSummary] = useState(null);
   const [roomTemplates, setRoomTemplates] = useState([]);
   const [allItems, setAllItems] = useState([]);
@@ -295,6 +299,21 @@ export default function AddScheme() {
     }
   };
 
+  const handleRenameScheme = async (e) => {
+    e.preventDefault();
+    if (!renameValue.trim()) return;
+    setRenameSaving(true);
+    try {
+      const updated = await schemesApi.rename(scheme.id, renameValue.trim());
+      setScheme(updated);
+      setRenamingScheme(false);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setRenameSaving(false);
+    }
+  };
+
   const handleAddRoom = async (roomId) => {
     setError(null);
     try {
@@ -341,7 +360,45 @@ export default function AddScheme() {
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">{scheme.name}</h1>
+        <div>
+          {renamingScheme ? (
+            <form onSubmit={handleRenameScheme} className="inline-rename-form">
+              <input
+                className="input"
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                autoFocus
+                required
+              />
+              <button type="submit" className="btn btn-primary btn-sm" disabled={renameSaving}>
+                {renameSaving ? 'Saving…' : 'Save'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => setRenamingScheme(false)}
+                disabled={renameSaving}
+              >
+                Cancel
+              </button>
+            </form>
+          ) : (
+            <span className="scheme-name-cell">
+              <h1 className="page-title" style={{ margin: 0 }}>{scheme.name}</h1>
+              <button
+                className="btn-icon"
+                title="Rename scheme"
+                style={{ opacity: 1, fontSize: '1.1rem' }}
+                onClick={() => {
+                  setRenameValue(scheme.name);
+                  setRenamingScheme(true);
+                }}
+              >
+                ✎
+              </button>
+            </span>
+          )}
+        </div>
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
           <span className="price">
             Total: {formatPrice(summary?.totalPrice ?? 0)}

@@ -33,8 +33,8 @@ class SchemePriceCalculatorTest {
 
   @Test
   void calculateTotalPrice_withItemsOnly_returnsSumOfItemLineTotals() {
-    Item chair = new Item("Chair", new BigDecimal("150.00"), null);
-    Item lamp = new Item("Lamp", new BigDecimal("50.00"), null);
+    Item chair = new Item("Chair", new BigDecimal("150.00"), null, null);
+    Item lamp = new Item("Lamp", new BigDecimal("50.00"), null, null);
     Scheme scheme = new Scheme("Scheme");
     SchemeRoom schemeRoom = new SchemeRoom(scheme, null, "Living Room");
     schemeRoom.getSchemeRoomItems().add(new SchemeRoomItem(schemeRoom, chair, 2));
@@ -48,7 +48,7 @@ class SchemePriceCalculatorTest {
 
   @Test
   void calculateTotalPrice_withPacksOnly_returnsSumOfPackItemLineTotals() {
-    Item sofa = new Item("Sofa", new BigDecimal("300.00"), null);
+    Item sofa = new Item("Sofa", new BigDecimal("300.00"), null, null);
     Pack pack = new Pack("Living Room Pack");
     pack.getPackItems().add(new PackItem(pack, sofa, 1));
     Scheme scheme = new Scheme("Scheme");
@@ -63,7 +63,7 @@ class SchemePriceCalculatorTest {
 
   @Test
   void calculateTotalPrice_withMultipleRooms_sumsPricesAcrossAllRooms() {
-    Item chair = new Item("Chair", new BigDecimal("100.00"), null);
+    Item chair = new Item("Chair", new BigDecimal("100.00"), null, null);
     Scheme scheme = new Scheme("Scheme");
 
     SchemeRoom bedroomRoom = new SchemeRoom(scheme, null, "Bedroom");
@@ -82,8 +82,8 @@ class SchemePriceCalculatorTest {
 
   @Test
   void calculateSchemeRoomPrice_withItemsAndPacks_returnsCombinedTotal() {
-    Item chair = new Item("Chair", new BigDecimal("100.00"), null);
-    Item table = new Item("Table", new BigDecimal("200.00"), null);
+    Item chair = new Item("Chair", new BigDecimal("100.00"), null, null);
+    Item table = new Item("Table", new BigDecimal("200.00"), null, null);
     Pack pack = new Pack("Furniture Pack");
     pack.getPackItems().add(new PackItem(pack, table, 1));
 
@@ -98,8 +98,8 @@ class SchemePriceCalculatorTest {
 
   @Test
   void calculateSchemeRoomPrice_packWithMultipleItems_sumsAllPackItemCosts() {
-    Item chair = new Item("Chair", new BigDecimal("50.00"), null);
-    Item cushion = new Item("Cushion", new BigDecimal("20.00"), null);
+    Item chair = new Item("Chair", new BigDecimal("50.00"), null, null);
+    Item cushion = new Item("Cushion", new BigDecimal("20.00"), null, null);
     Pack pack = new Pack("Chair Set");
     pack.getPackItems().add(new PackItem(pack, chair, 2));
     pack.getPackItems().add(new PackItem(pack, cushion, 4));

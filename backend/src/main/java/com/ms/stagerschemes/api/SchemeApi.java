@@ -3,10 +3,13 @@ package com.ms.stagerschemes.api;
 import com.ms.stagerschemes.dto.AddItemToSchemeRoomRequest;
 import com.ms.stagerschemes.dto.AddPackToSchemeRoomRequest;
 import com.ms.stagerschemes.dto.AddRoomToSchemeRequest;
+import com.ms.stagerschemes.dto.CustomerSummaryOverridesRequest;
+import com.ms.stagerschemes.dto.SchemeNameRequest;
 import com.ms.stagerschemes.dto.SchemeRequest;
 import com.ms.stagerschemes.dto.SchemeResponse;
 import com.ms.stagerschemes.dto.SchemeRoomSummary;
 import com.ms.stagerschemes.dto.SchemeSummaryResponse;
+import com.ms.stagerschemes.dto.SetTemplateRequest;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -66,4 +69,20 @@ public interface SchemeApi {
   @DeleteMapping("/{schemeId}/rooms/{schemeRoomId}/packs/{packId}")
   ResponseEntity<Void> removePackFromSchemeRoom(
       @PathVariable Long schemeId, @PathVariable Long schemeRoomId, @PathVariable Long packId);
+
+  @PutMapping("/{schemeId}/name")
+  ResponseEntity<SchemeResponse> renameScheme(
+      @PathVariable Long schemeId, @RequestBody SchemeNameRequest schemeNameRequest);
+
+  @PutMapping("/{schemeId}/template")
+  ResponseEntity<SchemeResponse> setTemplate(
+      @PathVariable Long schemeId, @RequestBody SetTemplateRequest setTemplateRequest);
+
+  @PostMapping("/{schemeId}/duplicate")
+  ResponseEntity<SchemeResponse> duplicateScheme(
+      @PathVariable Long schemeId, @RequestBody SchemeNameRequest schemeNameRequest);
+
+  @PutMapping("/{schemeId}/customer-summary-overrides")
+  ResponseEntity<Void> saveCustomerSummaryOverrides(
+      @PathVariable Long schemeId, @RequestBody CustomerSummaryOverridesRequest request);
 }

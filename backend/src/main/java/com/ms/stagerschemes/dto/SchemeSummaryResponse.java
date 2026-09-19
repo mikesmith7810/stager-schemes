@@ -10,4 +10,5 @@ public record SchemeSummaryResponse(
     BigDecimal totalPrice,
     BigDecimal transportCost,
     BigDecimal stagingCost,
-    BigDecimal designCost) {}
+    BigDecimal designCost,
+    String customerSummaryOverrides) {}

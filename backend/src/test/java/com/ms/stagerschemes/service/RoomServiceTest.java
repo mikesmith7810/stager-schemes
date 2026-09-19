@@ -117,7 +117,7 @@ class RoomServiceTest {
   @Test
   void addItemToRoom_existingRoomAndItem_savesRoomItemAndReturnsRoom() {
     Room room = new Room("Living Room");
-    Item sofa = new Item("Sofa", new BigDecimal("400.00"), null);
+    Item sofa = new Item("Sofa", new BigDecimal("400.00"), null, null);
     when(roomRepository.findById(1L)).thenReturn(Optional.of(room));
     when(itemRepository.findById(1L)).thenReturn(Optional.of(sofa));
     when(roomItemRepository.save(any(RoomItem.class))).thenReturn(new RoomItem(room, sofa, 1));
@@ -131,7 +131,7 @@ class RoomServiceTest {
   @Test
   void removeItemFromRoom_itemInRoom_deletesRoomItem() {
     Room room = new Room("Living Room");
-    Item sofa = new Item("Sofa", new BigDecimal("400.00"), null);
+    Item sofa = new Item("Sofa", new BigDecimal("400.00"), null, null);
     RoomItem roomItem = new RoomItem(room, sofa, 1);
     room.getRoomItems().add(roomItem);
     when(roomRepository.findById(1L)).thenReturn(Optional.of(room));

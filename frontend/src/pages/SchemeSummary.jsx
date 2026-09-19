@@ -14,14 +14,21 @@ function SchemeRoomSummary({ room, onOpenLightbox }) {
   return (
     <div className="summary-section">
       <h2 className="summary-room-title">{room.name}</h2>
-      <table className="data-table">
+      <table className="data-table" style={{ tableLayout: 'fixed' }}>
+        <colgroup>
+          <col style={{ width: 48 }} />
+          <col />
+          <col style={{ width: 56 }} />
+          <col style={{ width: 120 }} />
+          <col style={{ width: 120 }} />
+        </colgroup>
         <thead>
           <tr>
-            <th style={{ width: '36px' }}></th>
+            <th></th>
             <th>Item</th>
             <th style={{ textAlign: 'right' }}>Qty</th>
-            <th style={{ textAlign: 'right' }}>Ex VAT</th>
             <th style={{ textAlign: 'right' }}>Inc VAT</th>
+            <th style={{ textAlign: 'right' }}>Ex VAT</th>
           </tr>
         </thead>
         <tbody>
@@ -38,8 +45,8 @@ function SchemeRoomSummary({ room, onOpenLightbox }) {
               </td>
               <td>{item.itemName}</td>
               <td style={{ textAlign: 'right' }}>{item.quantity}</td>
-              <td style={{ textAlign: 'right' }}>{formatPrice(item.lineTotal * 0.8)}</td>
               <td style={{ textAlign: 'right' }}>{formatPrice(item.lineTotal)}</td>
+              <td style={{ textAlign: 'right' }}>{formatPrice(item.lineTotal * 0.8)}</td>
             </tr>
           ))}
           {room.packs.flatMap((pack) => [
@@ -70,8 +77,8 @@ function SchemeRoomSummary({ room, onOpenLightbox }) {
                 </td>
                 <td style={{ paddingLeft: '1rem' }}>{pi.itemName}</td>
                 <td style={{ textAlign: 'right' }}>{pi.quantity}</td>
-                <td style={{ textAlign: 'right' }}>{formatPrice(pi.itemPrice * pi.quantity * 0.8)}</td>
                 <td style={{ textAlign: 'right' }}>{formatPrice(pi.itemPrice * pi.quantity)}</td>
+                <td style={{ textAlign: 'right' }}>{formatPrice(pi.itemPrice * pi.quantity * 0.8)}</td>
               </tr>
             )),
           ])}
@@ -87,12 +94,12 @@ function SchemeRoomSummary({ room, onOpenLightbox }) {
             <td
               style={{ textAlign: 'right', paddingTop: '0.5rem', borderTop: '2px solid var(--border, #e5e7eb)' }}
             >
-              {formatPrice(roomExVat)}
+              {formatPrice(roomIncVat)}
             </td>
             <td
               style={{ textAlign: 'right', paddingTop: '0.5rem', borderTop: '2px solid var(--border, #e5e7eb)' }}
             >
-              {formatPrice(roomIncVat)}
+              {formatPrice(roomExVat)}
             </td>
           </tr>
         </tfoot>
@@ -158,33 +165,53 @@ export default function SchemeSummary() {
 
       {summary.rooms.length > 0 && (
         <div className="summary-section">
-          <div className="line-item" style={{ fontWeight: 600 }}>
-            <span>Items Total Ex VAT</span>
-            <span className="price">{formatPrice(itemsExVat)}</span>
-          </div>
-          <div className="line-item" style={{ fontWeight: 600 }}>
-            <span>Items VAT</span>
-            <span className="price">{formatPrice(totalVat)}</span>
-          </div>
-          <div className="line-item" style={{ fontWeight: 600 }}>
-            <span>Items Total Inc VAT</span>
-            <span className="price">{formatPrice(itemsIncVat)}</span>
-          </div>
+          <table className="data-table" style={{ tableLayout: 'fixed' }}>
+            <colgroup>
+              <col style={{ width: 48 }} />
+              <col />
+              <col style={{ width: 56 }} />
+              <col style={{ width: 120 }} />
+              <col style={{ width: 120 }} />
+            </colgroup>
+            <tbody>
+              <tr style={{ fontWeight: 600 }}>
+                <td colSpan={3} style={{ textAlign: 'right' }}>Items Total Inc VAT</td>
+                <td style={{ textAlign: 'right' }}>{formatPrice(itemsIncVat)}</td>
+                <td style={{ textAlign: 'right' }}>{formatPrice(itemsExVat)}</td>
+              </tr>
+              <tr>
+                <td colSpan={3} style={{ textAlign: 'right', color: 'var(--text-muted, #888)' }}>VAT (20%)</td>
+                <td style={{ textAlign: 'right', color: 'var(--text-muted, #888)' }}>{formatPrice(totalVat)}</td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       )}
 
       <div className="summary-section">
         <h2 className="summary-room-title">Other Costs</h2>
-        {[
-          { label: 'Transport', value: summary.transportCost },
-          { label: 'Staging', value: summary.stagingCost },
-          { label: 'Design', value: summary.designCost },
-        ].map(({ label, value }) => (
-          <div key={label} className="line-item">
-            <span>{label}</span>
-            <span className="price">{formatPrice(value ?? 0)}</span>
-          </div>
-        ))}
+        <table className="data-table" style={{ tableLayout: 'fixed' }}>
+          <colgroup>
+            <col style={{ width: 48 }} />
+            <col />
+            <col style={{ width: 56 }} />
+            <col style={{ width: 120 }} />
+            <col style={{ width: 120 }} />
+          </colgroup>
+          <tbody>
+            {[
+              { label: 'Transport', value: summary.transportCost },
+              { label: 'Staging', value: summary.stagingCost },
+              { label: 'Design', value: summary.designCost },
+            ].map(({ label, value }) => (
+              <tr key={label}>
+                <td colSpan={4} style={{ textAlign: 'right' }}>{label}</td>
+                <td style={{ textAlign: 'right' }}>{formatPrice(value ?? 0)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       <div className="summary-total-bar">

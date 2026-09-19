@@ -65,7 +65,7 @@ public class ItemService {
   public ItemResponse createItem(ItemRequest itemRequest) {
     Item savedItem =
         itemRepository.save(
-            new Item(itemRequest.name(), itemRequest.price(), itemRequest.webLink()));
+            new Item(itemRequest.name(), itemRequest.price(), itemRequest.webLink(), itemRequest.category()));
     return ItemResponse.from(savedItem, false);
   }
 
@@ -78,6 +78,7 @@ public class ItemService {
     item.setName(itemRequest.name());
     item.setPrice(itemRequest.price());
     item.setWebLink(itemRequest.webLink());
+    item.setCategory(itemRequest.category());
     return ItemResponse.from(itemRepository.save(item), itemImageRepository.existsById(itemId));
   }
 

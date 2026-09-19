@@ -12,10 +12,15 @@ export const schemesApi = {
     apiClient.delete(`/schemes/${schemeId}/rooms/${schemeRoomId}`),
   addItemToRoom: (schemeId, schemeRoomId, payload) =>
     apiClient.post(`/schemes/${schemeId}/rooms/${schemeRoomId}/items`, payload),
-  removeItemFromRoom: (schemeId, schemeRoomId, itemId) =>
-    apiClient.delete(`/schemes/${schemeId}/rooms/${schemeRoomId}/items/${itemId}`),
+  removeItemFromRoom: (schemeId, schemeRoomId, schemeRoomItemId) =>
+    apiClient.delete(`/schemes/${schemeId}/rooms/${schemeRoomId}/items/${schemeRoomItemId}`),
   addPackToRoom: (schemeId, schemeRoomId, payload) =>
     apiClient.post(`/schemes/${schemeId}/rooms/${schemeRoomId}/packs`, payload),
-  removePackFromRoom: (schemeId, schemeRoomId, packId) =>
-    apiClient.delete(`/schemes/${schemeId}/rooms/${schemeRoomId}/packs/${packId}`),
+  removePackFromRoom: (schemeId, schemeRoomId, schemeRoomPackId) =>
+    apiClient.delete(`/schemes/${schemeId}/rooms/${schemeRoomId}/packs/${schemeRoomPackId}`),
+  rename: (id, name) => apiClient.put(`/schemes/${id}/name`, { name }),
+  saveCustomerSummaryOverrides: (id, overrides) =>
+    apiClient.put(`/schemes/${id}/customer-summary-overrides`, { overrides }),
+  setTemplate: (id, template) => apiClient.put(`/schemes/${id}/template`, { template }),
+  duplicate: (id, name) => apiClient.post(`/schemes/${id}/duplicate`, { name }),
 };

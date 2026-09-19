@@ -2,6 +2,24 @@ import { useEffect, useRef, useState } from 'react';
 import { itemsApi } from '../api/items.js';
 import Lightbox from '../components/Lightbox.jsx';
 
+const CATEGORIES = [
+  'Beds',
+  'Appliances',
+  'Chairs',
+  'Tables',
+  'Lamps',
+  'Soft Furnishings',
+  'Kitchen',
+  'Plants',
+  'Artwork',
+  'Mirrors',
+];
+const CATEGORY_ORDER = [...CATEGORIES, 'Unassigned'];
+
+function resolvedCategory(item) {
+  return item.category && CATEGORIES.includes(item.category) ? item.category : 'Unassigned';
+}
+
 function formatPrice(price) {
   return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(price ?? 0);
 }
@@ -12,10 +30,12 @@ export default function Items() {
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [webLink, setWebLink] = useState('');
+  const [category, setCategory] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
   const [editPrice, setEditPrice] = useState('');
   const [editWebLink, setEditWebLink] = useState('');
+  const [editCategory, setEditCategory] = useState('');
   const [pasteTargetId, setPasteTargetId] = useState(null);
   const [lightboxItemId, setLightboxItemId] = useState(null);
   const [imageVersion, setImageVersion] = useState({});
@@ -113,7 +133,12 @@ export default function Items() {
     e.preventDefault();
     setError(null);
     try {
-      const created = await itemsApi.create({ name, price: parseFloat(price), webLink: webLink || null });
+      const created = await itemsApi.create({
+        name,
+        price: parseFloat(price),
+        webLink: webLink || null,
+        category: category || null,
+      });
       if (pendingImage) {
         await itemsApi.uploadImage(created.id, pendingImage);
         clearPendingImage();
@@ -121,6 +146,7 @@ export default function Items() {
       setName('');
       setPrice('');
       setWebLink('');
+      setCategory('');
       setFormPasteActive(false);
       load();
     } catch (err) {
@@ -133,6 +159,7 @@ export default function Items() {
     setEditName(item.name);
     setEditPrice(String(item.price));
     setEditWebLink(item.webLink ?? '');
+    setEditCategory(item.category ?? '');
   };
 
   const handleSaveEdit = async (id) => {
@@ -142,6 +169,7 @@ export default function Items() {
         name: editName,
         price: parseFloat(editPrice),
         webLink: editWebLink || null,
+        category: editCategory || null,
       });
       setEditingId(null);
       load();
@@ -216,6 +244,17 @@ export default function Items() {
     );
   };
 
+  const grouped = {};
+  for (const item of items) {
+    const cat = resolvedCategory(item);
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(item);
+  }
+  for (const cat of Object.keys(grouped)) {
+    grouped[cat].sort((a, b) => a.name.localeCompare(b.name));
+  }
+  const categoriesToShow = CATEGORY_ORDER.filter((cat) => grouped[cat]?.length > 0);
+
   return (
     <div>
       <div className="page-header">
@@ -247,6 +286,15 @@ export default function Items() {
             placeholder="0.00"
             required
           />
+        </div>
+        <div className="field">
+          <label className="field-label">Category</label>
+          <select className="select" value={category} onChange={(e) => setCategory(e.target.value)}>
+            <option value="">Unassigned</option>
+            {CATEGORIES.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
         </div>
         <div className="field">
           <label className="field-label">Web link</label>
@@ -296,102 +344,126 @@ export default function Items() {
       {items.length === 0 ? (
         <p className="empty-msg">No items yet.</p>
       ) : (
-        <div className="table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Image</th>
-                <th>Name</th>
-                <th>Price</th>
-                <th>Web Link</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item) =>
-                editingId === item.id ? (
-                  <tr key={item.id}>
-                    <td>{imageCell(item)}</td>
-                    <td>
-                      <input
-                        className="input"
-                        value={editName}
-                        onChange={(e) => setEditName(e.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="input input-sm"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={editPrice}
-                        onChange={(e) => setEditPrice(e.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        className="input"
-                        type="url"
-                        value={editWebLink}
-                        onChange={(e) => setEditWebLink(e.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <div className="td-actions">
-                        <button
-                          className="btn btn-primary btn-sm"
-                          onClick={() => handleSaveEdit(item.id)}
-                        >
-                          Save
-                        </button>
-                        <button
-                          className="btn btn-ghost btn-sm"
-                          onClick={() => setEditingId(null)}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </td>
+        categoriesToShow.map((cat) => (
+          <details key={cat} className="category-section">
+            <summary className="category-summary">
+              {cat}
+              <span className="category-count">{grouped[cat].length}</span>
+            </summary>
+            <div className="table-container">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Category</th>
+                    <th>Web Link</th>
+                    <th></th>
                   </tr>
-                ) : (
-                  <tr key={item.id}>
-                    <td>{imageCell(item)}</td>
-                    <td>{item.name}</td>
-                    <td>
-                      <span className="price">{formatPrice(item.price)}</span>
-                    </td>
-                    <td>
-                      {item.webLink ? (
-                        <a href={item.webLink} target="_blank" rel="noreferrer">
-                          Link
-                        </a>
-                      ) : (
-                        <span className="price-muted">—</span>
-                      )}
-                    </td>
-                    <td>
-                      <div className="td-actions">
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => startEdit(item)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn btn-danger btn-sm"
-                          onClick={() => handleDelete(item)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                )
-              )}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody>
+                  {grouped[cat].map((item) =>
+                    editingId === item.id ? (
+                      <tr key={item.id}>
+                        <td>{imageCell(item)}</td>
+                        <td>
+                          <input
+                            className="input"
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            className="input input-sm"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={editPrice}
+                            onChange={(e) => setEditPrice(e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <select
+                            className="select"
+                            value={editCategory}
+                            onChange={(e) => setEditCategory(e.target.value)}
+                          >
+                            <option value="">Unassigned</option>
+                            {CATEGORIES.map((c) => (
+                              <option key={c} value={c}>{c}</option>
+                            ))}
+                          </select>
+                        </td>
+                        <td>
+                          <input
+                            className="input"
+                            type="url"
+                            value={editWebLink}
+                            onChange={(e) => setEditWebLink(e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <div className="td-actions">
+                            <button
+                              className="btn btn-primary btn-sm"
+                              onClick={() => handleSaveEdit(item.id)}
+                            >
+                              Save
+                            </button>
+                            <button
+                              className="btn btn-ghost btn-sm"
+                              onClick={() => setEditingId(null)}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      <tr key={item.id}>
+                        <td>{imageCell(item)}</td>
+                        <td>{item.name}</td>
+                        <td>
+                          <span className="price">{formatPrice(item.price)}</span>
+                        </td>
+                        <td>
+                          <span className="price-muted">{item.category || 'Unassigned'}</span>
+                        </td>
+                        <td>
+                          {item.webLink ? (
+                            <a href={item.webLink} target="_blank" rel="noreferrer">
+                              Link
+                            </a>
+                          ) : (
+                            <span className="price-muted">—</span>
+                          )}
+                        </td>
+                        <td>
+                          <div className="td-actions">
+                            <button
+                              className="btn btn-secondary btn-sm"
+                              onClick={() => startEdit(item)}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="btn btn-danger btn-sm"
+                              onClick={() => handleDelete(item)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        ))
       )}
 
       <Lightbox

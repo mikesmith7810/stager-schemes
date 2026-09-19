@@ -112,7 +112,7 @@ class PackServiceTest {
   @Test
   void addItemToPack_existingPackAndItem_savesPackItemAndReturnsUpdatedPack() {
     Pack pack = new Pack("Pack");
-    Item chair = new Item("Chair", new BigDecimal("100.00"), null);
+    Item chair = new Item("Chair", new BigDecimal("100.00"), null, null);
     PackItemRequest packItemRequest = new PackItemRequest(1L, 2);
     when(packRepository.findById(1L)).thenReturn(Optional.of(pack));
     when(itemRepository.findById(1L)).thenReturn(Optional.of(chair));
@@ -127,7 +127,7 @@ class PackServiceTest {
   @Test
   void removeItemFromPack_itemInPack_deletesPackItem() {
     Pack pack = new Pack("Pack");
-    Item chair = new Item("Chair", new BigDecimal("100.00"), null);
+    Item chair = new Item("Chair", new BigDecimal("100.00"), null, null);
     PackItem packItem = new PackItem(pack, chair, 1);
     pack.getPackItems().add(packItem);
 

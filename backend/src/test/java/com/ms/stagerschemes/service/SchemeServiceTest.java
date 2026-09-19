@@ -168,6 +168,46 @@ class SchemeServiceTest {
   }
 
   @Test
+  void setTemplate_existingScheme_savesAndReturnsWithTemplateFlag() {
+    Scheme scheme = new Scheme("Scheme A");
+    when(schemeRepository.findById(1L)).thenReturn(Optional.of(scheme));
+    when(schemeRepository.save(any(Scheme.class))).thenReturn(scheme);
+    when(schemePriceCalculator.calculateTotalPrice(any())).thenReturn(BigDecimal.ZERO);
+
+    SchemeResponse result = schemeService.setTemplate(1L, true);
+
+    verify(schemeRepository).save(scheme);
+    assertThat(result.template()).isTrue();
+  }
+
+  @Test
+  void renameScheme_existingScheme_updatesNameAndReturnsUpdatedScheme() {
+    Scheme scheme = new Scheme("Old Name");
+    when(schemeRepository.findById(1L)).thenReturn(Optional.of(scheme));
+    when(schemeRepository.save(any(Scheme.class))).thenReturn(scheme);
+    when(schemePriceCalculator.calculateTotalPrice(any())).thenReturn(BigDecimal.ZERO);
+
+    SchemeResponse result = schemeService.renameScheme(1L, "New Name");
+
+    assertThat(result.name()).isEqualTo("New Name");
+    verify(schemeRepository).save(scheme);
+  }
+
+  @Test
+  void duplicateScheme_existingScheme_savesNewSchemeWithProvidedName() {
+    Scheme source = new Scheme("Original");
+    Scheme copy = new Scheme("14 Maple Street");
+    when(schemeRepository.findById(1L)).thenReturn(Optional.of(source));
+    when(schemeRepository.save(any(Scheme.class))).thenReturn(copy);
+
+    SchemeResponse result = schemeService.duplicateScheme(1L, "14 Maple Street");
+
+    verify(schemeRepository).save(any(Scheme.class));
+    assertThat(result.name()).isEqualTo("14 Maple Street");
+    assertThat(result.template()).isFalse();
+  }
+
+  @Test
   void removeRoomFromScheme_schemeRoomBelongsToScheme_deletesSchemeRoom() {
     Scheme scheme = new Scheme("Scheme");
     Room room = new Room("Bedroom");

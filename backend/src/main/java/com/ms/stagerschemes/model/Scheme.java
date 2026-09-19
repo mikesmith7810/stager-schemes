@@ -32,6 +32,12 @@ public class Scheme {
   @Column(nullable = false, columnDefinition = "DECIMAL(10,2) DEFAULT 0.00")
   private BigDecimal designCost = BigDecimal.ZERO;
 
+  @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
+  private boolean template = false;
+
+  @Column(columnDefinition = "TEXT")
+  private String customerSummaryOverrides;
+
   @OneToMany(mappedBy = "scheme", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<SchemeRoom> schemeRooms = new ArrayList<>();
 
@@ -75,6 +81,22 @@ public class Scheme {
 
   public void setDesignCost(BigDecimal designCost) {
     this.designCost = designCost;
+  }
+
+  public boolean isTemplate() {
+    return template;
+  }
+
+  public void setTemplate(boolean template) {
+    this.template = template;
+  }
+
+  public String getCustomerSummaryOverrides() {
+    return customerSummaryOverrides;
+  }
+
+  public void setCustomerSummaryOverrides(String customerSummaryOverrides) {
+    this.customerSummaryOverrides = customerSummaryOverrides;
   }
 
   public List<SchemeRoom> getSchemeRooms() {

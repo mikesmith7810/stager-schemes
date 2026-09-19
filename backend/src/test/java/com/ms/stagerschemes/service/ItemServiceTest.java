@@ -49,7 +49,7 @@ class ItemServiceTest {
 
   @Test
   void findAllItems_returnsAllItemsAsDtos() {
-    Item chair = new Item("Chair", new BigDecimal("150.00"), "https://example.com/chair");
+    Item chair = new Item("Chair", new BigDecimal("150.00"), "https://example.com/chair", null);
     when(itemRepository.findAll()).thenReturn(List.of(chair));
     when(itemImageRepository.findExistingIds(any())).thenReturn(Set.of());
 
@@ -62,7 +62,7 @@ class ItemServiceTest {
 
   @Test
   void findItemById_existingItem_returnsItemResponse() {
-    Item lamp = new Item("Lamp", new BigDecimal("75.00"), null);
+    Item lamp = new Item("Lamp", new BigDecimal("75.00"), null, null);
     when(itemRepository.findById(1L)).thenReturn(Optional.of(lamp));
 
     ItemResponse result = itemService.findItemById(1L);
@@ -81,8 +81,8 @@ class ItemServiceTest {
 
   @Test
   void createItem_savesAndReturnsNewItem() {
-    ItemRequest itemRequest = new ItemRequest("Sofa", new BigDecimal("500.00"), null);
-    Item savedItem = new Item("Sofa", new BigDecimal("500.00"), null);
+    ItemRequest itemRequest = new ItemRequest("Sofa", new BigDecimal("500.00"), null, null);
+    Item savedItem = new Item("Sofa", new BigDecimal("500.00"), null, null);
     when(itemRepository.save(any(Item.class))).thenReturn(savedItem);
 
     ItemResponse result = itemService.createItem(itemRequest);
@@ -93,9 +93,9 @@ class ItemServiceTest {
 
   @Test
   void updateItem_existingItem_updatesAndReturnsItem() {
-    Item existingItem = new Item("Old Name", new BigDecimal("100.00"), null);
+    Item existingItem = new Item("Old Name", new BigDecimal("100.00"), null, null);
     ItemRequest updateRequest =
-        new ItemRequest("New Name", new BigDecimal("120.00"), "https://example.com");
+        new ItemRequest("New Name", new BigDecimal("120.00"), "https://example.com", null);
     when(itemRepository.findById(1L)).thenReturn(Optional.of(existingItem));
     when(itemRepository.save(any(Item.class))).thenReturn(existingItem);
 
@@ -110,7 +110,7 @@ class ItemServiceTest {
     when(itemRepository.findById(99L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(
-            () -> itemService.updateItem(99L, new ItemRequest("Name", BigDecimal.ONE, null)))
+            () -> itemService.updateItem(99L, new ItemRequest("Name", BigDecimal.ONE, null, null)))
         .isInstanceOf(NoSuchElementException.class);
   }
 

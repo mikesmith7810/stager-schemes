@@ -25,12 +25,16 @@ public class Item {
   @Column(name = "web_link", length = 2048)
   private String webLink;
 
+  @Column(length = 64)
+  private String category;
+
   protected Item() {}
 
-  public Item(String name, BigDecimal price, String webLink) {
+  public Item(String name, BigDecimal price, String webLink, String category) {
     this.name = name;
     this.price = price;
     this.webLink = webLink;
+    this.category = category;
   }
 
   public Long getId() {
@@ -59,5 +63,13 @@ public class Item {
 
   public void setWebLink(String webLink) {
     this.webLink = webLink;
+  }
+
+  public String getCategory() {
+    return category;
+  }
+
+  public void setCategory(String category) {
+    this.category = category;
   }
 }

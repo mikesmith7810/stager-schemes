@@ -4,10 +4,13 @@ import com.ms.stagerschemes.api.SchemeApi;
 import com.ms.stagerschemes.dto.AddItemToSchemeRoomRequest;
 import com.ms.stagerschemes.dto.AddPackToSchemeRoomRequest;
 import com.ms.stagerschemes.dto.AddRoomToSchemeRequest;
+import com.ms.stagerschemes.dto.CustomerSummaryOverridesRequest;
+import com.ms.stagerschemes.dto.SchemeNameRequest;
 import com.ms.stagerschemes.dto.SchemeRequest;
 import com.ms.stagerschemes.dto.SchemeResponse;
 import com.ms.stagerschemes.dto.SchemeRoomSummary;
 import com.ms.stagerschemes.dto.SchemeSummaryResponse;
+import com.ms.stagerschemes.dto.SetTemplateRequest;
 import com.ms.stagerschemes.service.SchemeService;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -92,6 +95,32 @@ public class SchemeController implements SchemeApi {
   public ResponseEntity<Void> removePackFromSchemeRoom(
       Long schemeId, Long schemeRoomId, Long packId) {
     schemeService.removePackFromSchemeRoom(schemeRoomId, packId);
+    return ResponseEntity.noContent().build();
+  }
+
+  @Override
+  public ResponseEntity<SchemeResponse> renameScheme(
+      Long schemeId, SchemeNameRequest schemeNameRequest) {
+    return ResponseEntity.ok(schemeService.renameScheme(schemeId, schemeNameRequest.name()));
+  }
+
+  @Override
+  public ResponseEntity<SchemeResponse> setTemplate(
+      Long schemeId, SetTemplateRequest setTemplateRequest) {
+    return ResponseEntity.ok(schemeService.setTemplate(schemeId, setTemplateRequest.template()));
+  }
+
+  @Override
+  public ResponseEntity<SchemeResponse> duplicateScheme(
+      Long schemeId, SchemeNameRequest schemeNameRequest) {
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(schemeService.duplicateScheme(schemeId, schemeNameRequest.name()));
+  }
+
+  @Override
+  public ResponseEntity<Void> saveCustomerSummaryOverrides(
+      Long schemeId, CustomerSummaryOverridesRequest request) {
+    schemeService.saveCustomerSummaryOverrides(schemeId, request.overrides());
     return ResponseEntity.noContent().build();
   }
 }

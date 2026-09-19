@@ -22,7 +22,14 @@ function saveLayout(roomId, tiles) {
   try {
     const layout = {};
     tiles.forEach((t) => {
-      layout[t.key] = { x: t.x, y: t.y, width: t.width, height: t.height, zIndex: t.zIndex };
+      layout[t.key] = {
+        x: t.x,
+        y: t.y,
+        width: t.width,
+        height: t.height,
+        zIndex: t.zIndex,
+        hidden: t.hidden || false,
+      };
     });
     localStorage.setItem(`${STORAGE_PREFIX}${roomId}`, JSON.stringify(layout));
   } catch {
@@ -32,14 +39,25 @@ function saveLayout(roomId, tiles) {
 
 function collectTiles(room, savedLayout) {
   const tiles = [];
-  room.items.forEach((ri) =>
-    tiles.push({ src: `/api/items/${ri.itemId}/image`, key: `item-${ri.itemId}` })
-  );
+
+  room.items.forEach((ri, entryIdx) => {
+    for (let i = 0; i < (ri.quantity || 1); i++) {
+      tiles.push({
+        src: `/api/items/${ri.itemId}/image`,
+        key: `item-${ri.itemId}-${entryIdx}-${i}`,
+      });
+    }
+  });
+
   (room.packs || []).forEach((rp) =>
-    (rp.items || []).forEach((pi) =>
-      tiles.push({ src: `/api/items/${pi.itemId}/image`, key: `pack-${rp.packId}-item-${pi.itemId}` })
+    (rp.packItems || rp.items || []).forEach((pi) =>
+      tiles.push({
+        src: `/api/items/${pi.itemId}/image`,
+        key: `pack-${rp.packId}-item-${pi.itemId}`,
+      })
     )
   );
+
   tiles.push({ src: logoSrc, key: 'logo' });
 
   return tiles.map((tile, i) => {
@@ -51,6 +69,7 @@ function collectTiles(room, savedLayout) {
       width: saved?.width ?? INITIAL_IMG_SIZE,
       height: saved?.height ?? INITIAL_IMG_SIZE,
       zIndex: saved?.zIndex ?? i + 1,
+      hidden: saved?.hidden ?? false,
     };
   });
 }
@@ -79,6 +98,15 @@ export default function MoodBoard({ room, onClose }) {
       const maxZ = Math.max(...prev.map((t) => t.zIndex));
       return prev.map((t) => (t.key === key ? { ...t, zIndex: maxZ + 1 } : t));
     });
+  };
+
+  const removeTile = (key) => {
+    setTiles((prev) => prev.map((t) => (t.key === key ? { ...t, hidden: true } : t)));
+  };
+
+  const handleReset = () => {
+    localStorage.removeItem(`${STORAGE_PREFIX}${room.id}`);
+    setTiles(collectTiles(room, {}));
   };
 
   const startDrag = (e, key) => {
@@ -166,11 +194,16 @@ export default function MoodBoard({ room, onClose }) {
     window.print();
   };
 
+  const visibleTiles = tiles.filter((t) => !t.hidden);
+
   return (
     <div className="moodboard-overlay">
       <div className="moodboard-header screen-only">
         <span className="moodboard-title">{room.name} — Mood Board</span>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button className="btn btn-secondary btn-sm" onClick={handleReset}>
+            Reset
+          </button>
           <button className="btn btn-secondary btn-sm" onClick={handleSavePdf}>
             Save as PDF
           </button>
@@ -180,7 +213,7 @@ export default function MoodBoard({ room, onClose }) {
         </div>
       </div>
       <div className="moodboard-canvas" ref={canvasRef}>
-        {tiles.map((tile) => (
+        {visibleTiles.map((tile) => (
           <div
             key={tile.key}
             className="moodboard-tile"
@@ -200,6 +233,13 @@ export default function MoodBoard({ room, onClose }) {
               draggable={false}
               onError={(e) => { e.currentTarget.style.opacity = '0.1'; }}
             />
+            <button
+              className="moodboard-remove"
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={() => removeTile(tile.key)}
+            >
+              &times;
+            </button>
             <div
               className="moodboard-resize-handle"
               onMouseDown={(e) => startResize(e, tile.key)}

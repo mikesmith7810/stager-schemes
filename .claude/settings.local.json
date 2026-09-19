@@ -6,7 +6,12 @@
       "Bash(curl:*)",
       "Bash(docker-compose exec:*)",
       "Bash(python3:*)",
-      "Bash(htpasswd:*)"
+      "Bash(htpasswd:*)",
+      "Bash(perl -i -pe:*)",
+      "Bash(brew install:*)",
+      "Bash(pdftoppm:*)",
+      "Bash(convert:*)",
+      "Bash(sips:*)"
     ]
   }
 }
