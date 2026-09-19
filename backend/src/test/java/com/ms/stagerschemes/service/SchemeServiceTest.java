@@ -98,7 +98,7 @@ class SchemeServiceTest {
 
   @Test
   void createScheme_savesAndReturnsNewSchemeWithZeroPrice() {
-    SchemeRequest schemeRequest = new SchemeRequest("New Scheme");
+    SchemeRequest schemeRequest = new SchemeRequest("New Scheme", BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
     Scheme savedScheme = new Scheme("New Scheme");
     when(schemeRepository.save(any(Scheme.class))).thenReturn(savedScheme);
 
@@ -116,7 +116,7 @@ class SchemeServiceTest {
     when(schemeRepository.save(any(Scheme.class))).thenReturn(existingScheme);
     when(schemePriceCalculator.calculateTotalPrice(any())).thenReturn(BigDecimal.ZERO);
 
-    SchemeResponse result = schemeService.updateScheme(1L, new SchemeRequest("New Name"));
+    SchemeResponse result = schemeService.updateScheme(1L, new SchemeRequest("New Name", BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO));
 
     assertThat(result.name()).isEqualTo("New Name");
   }

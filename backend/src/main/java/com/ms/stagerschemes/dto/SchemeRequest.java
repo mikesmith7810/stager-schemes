@@ -1,3 +1,6 @@
 package com.ms.stagerschemes.dto;
 
-public record SchemeRequest(String name) {}
+import java.math.BigDecimal;
+
+public record SchemeRequest(
+    String name, BigDecimal transportCost, BigDecimal stagingCost, BigDecimal designCost) {}

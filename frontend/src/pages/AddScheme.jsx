@@ -225,6 +225,10 @@ export default function AddScheme() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [lightboxItemId, setLightboxItemId] = useState(null);
+  const [transportCost, setTransportCost] = useState('');
+  const [stagingCost, setStagingCost] = useState('');
+  const [designCost, setDesignCost] = useState('');
+  const [costsInitialized, setCostsInitialized] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -250,8 +254,31 @@ export default function AddScheme() {
     if (!scheme) return;
     schemesApi
       .getSummary(scheme.id)
-      .then(setSummary)
+      .then((data) => {
+        setSummary(data);
+        if (!costsInitialized) {
+          setTransportCost((data.transportCost ?? 0).toString());
+          setStagingCost((data.stagingCost ?? 0).toString());
+          setDesignCost((data.designCost ?? 0).toString());
+          setCostsInitialized(true);
+        }
+      })
       .catch((err) => setError(err.message));
+  };
+
+  const handleSaveCosts = async () => {
+    setError(null);
+    try {
+      await schemesApi.update(scheme.id, {
+        name: scheme.name,
+        transportCost: parseFloat(transportCost) || 0,
+        stagingCost: parseFloat(stagingCost) || 0,
+        designCost: parseFloat(designCost) || 0,
+      });
+      reloadSummary();
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   const handleCreate = async (e) => {
@@ -352,6 +379,31 @@ export default function AddScheme() {
             ))}
           </div>
         )}
+      </div>
+
+      <div className="section">
+        <h2 className="section-title">Other Costs</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxWidth: 420 }}>
+          {[
+            { label: 'Transport', value: transportCost, set: setTransportCost },
+            { label: 'Staging', value: stagingCost, set: setStagingCost },
+            { label: 'Design', value: designCost, set: setDesignCost },
+          ].map(({ label, value, set }) => (
+            <div key={label} className="form-row" style={{ alignItems: 'center' }}>
+              <label className="field-label" style={{ minWidth: 90, margin: 0 }}>{label}</label>
+              <input
+                className="input input-sm"
+                type="number"
+                min="0"
+                step="0.01"
+                value={value}
+                onChange={(e) => set(e.target.value)}
+                onBlur={handleSaveCosts}
+                placeholder="0.00"
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="section">

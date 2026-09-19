@@ -3,6 +3,7 @@ import { itemsApi } from '../api/items.js';
 import { packsApi } from '../api/packs.js';
 import { roomsApi } from '../api/rooms.js';
 import Lightbox from '../components/Lightbox.jsx';
+import MoodBoard from '../components/MoodBoard.jsx';
 
 function formatPrice(price) {
   return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(price ?? 0);
@@ -19,6 +20,7 @@ export default function Rooms() {
   const [selectedItemQty, setSelectedItemQty] = useState(1);
   const [selectedPackId, setSelectedPackId] = useState('');
   const [lightboxItemId, setLightboxItemId] = useState(null);
+  const [moodBoardRoom, setMoodBoardRoom] = useState(null);
 
   const load = () =>
     Promise.all([roomsApi.findAll(), itemsApi.findAll(), packsApi.findAll()])
@@ -155,12 +157,20 @@ export default function Rooms() {
                   ({room.items.length} items, {room.packs.length} packs — {formatPrice(roomTotal)})
                 </span>
               </button>
-              <button
-                className="btn btn-danger btn-sm"
-                onClick={() => handleDeleteRoom(room)}
-              >
-                Delete
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setMoodBoardRoom(room)}
+                >
+                  Mood Board
+                </button>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={() => handleDeleteRoom(room)}
+                >
+                  Delete
+                </button>
+              </div>
             </div>
             {expandedRoomId === room.id && (
               <div className="panel-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -290,6 +300,9 @@ export default function Rooms() {
         );})
       )}
       <Lightbox itemId={lightboxItemId} onClose={() => setLightboxItemId(null)} />
+      {moodBoardRoom && (
+        <MoodBoard room={moodBoardRoom} onClose={() => setMoodBoardRoom(null)} />
+      )}
     </div>
   );
 }

@@ -8,6 +8,7 @@ import Login from './pages/Login.jsx';
 import SchemeList from './pages/SchemeList.jsx';
 import AddScheme from './pages/AddScheme.jsx';
 import SchemeSummary from './pages/SchemeSummary.jsx';
+import CustomerSummary from './pages/CustomerSummary.jsx';
 import Rooms from './pages/Rooms.jsx';
 import Packs from './pages/Packs.jsx';
 import Items from './pages/Items.jsx';
@@ -66,6 +67,7 @@ export default function App() {
             <Route path="/schemes/new" element={<AddScheme />} />
             <Route path="/schemes/:id/edit" element={<AddScheme />} />
             <Route path="/schemes/:id" element={<SchemeSummary />} />
+            <Route path="/schemes/:id/customer-summary" element={<CustomerSummary />} />
             <Route path="/rooms" element={<Rooms />} />
             <Route path="/packs" element={<Packs />} />
             <Route path="/items" element={<Items />} />

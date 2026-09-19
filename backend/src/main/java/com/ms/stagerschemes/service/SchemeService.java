@@ -89,7 +89,11 @@ public class SchemeService {
 
   @Transactional
   public SchemeResponse createScheme(SchemeRequest schemeRequest) {
-    Scheme savedScheme = schemeRepository.save(new Scheme(schemeRequest.name()));
+    Scheme scheme = new Scheme(schemeRequest.name());
+    scheme.setTransportCost(nullSafeZero(schemeRequest.transportCost()));
+    scheme.setStagingCost(nullSafeZero(schemeRequest.stagingCost()));
+    scheme.setDesignCost(nullSafeZero(schemeRequest.designCost()));
+    Scheme savedScheme = schemeRepository.save(scheme);
     return new SchemeResponse(savedScheme.getId(), savedScheme.getName(), BigDecimal.ZERO);
   }
 
@@ -100,6 +104,9 @@ public class SchemeService {
             .findById(schemeId)
             .orElseThrow(() -> new NoSuchElementException("Scheme not found: " + schemeId));
     scheme.setName(schemeRequest.name());
+    scheme.setTransportCost(nullSafeZero(schemeRequest.transportCost()));
+    scheme.setStagingCost(nullSafeZero(schemeRequest.stagingCost()));
+    scheme.setDesignCost(nullSafeZero(schemeRequest.designCost()));
     Scheme savedScheme = schemeRepository.save(scheme);
     return new SchemeResponse(
         savedScheme.getId(),
@@ -126,7 +133,14 @@ public class SchemeService {
         scheme.getSchemeRooms().stream().map(this::toSchemeRoomSummary).toList();
 
     BigDecimal totalPrice = schemePriceCalculator.calculateTotalPrice(scheme);
-    return new SchemeSummaryResponse(scheme.getId(), scheme.getName(), roomSummaries, totalPrice);
+    return new SchemeSummaryResponse(
+        scheme.getId(),
+        scheme.getName(),
+        roomSummaries,
+        totalPrice,
+        scheme.getTransportCost(),
+        scheme.getStagingCost(),
+        scheme.getDesignCost());
   }
 
   @Transactional
@@ -238,5 +252,9 @@ public class SchemeService {
         itemResponses,
         packResponses,
         roomTotal);
+  }
+
+  private BigDecimal nullSafeZero(BigDecimal value) {
+    return value != null ? value : BigDecimal.ZERO;
   }
 }

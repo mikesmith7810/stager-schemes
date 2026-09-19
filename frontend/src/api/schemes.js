@@ -4,6 +4,7 @@ export const schemesApi = {
   findAll: () => apiClient.get('/schemes'),
   findById: (id) => apiClient.get(`/schemes/${id}`),
   create: (scheme) => apiClient.post('/schemes', scheme),
+  update: (id, scheme) => apiClient.put(`/schemes/${id}`, scheme),
   delete: (id) => apiClient.delete(`/schemes/${id}`),
   getSummary: (id) => apiClient.get(`/schemes/${id}/summary`),
   addRoom: (schemeId, payload) => apiClient.post(`/schemes/${schemeId}/rooms`, payload),

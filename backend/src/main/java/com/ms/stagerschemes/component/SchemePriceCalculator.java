@@ -10,9 +10,14 @@ import org.springframework.stereotype.Component;
 public class SchemePriceCalculator {
 
   public BigDecimal calculateTotalPrice(Scheme scheme) {
-    return scheme.getSchemeRooms().stream()
-        .map(this::calculateSchemeRoomPrice)
-        .reduce(BigDecimal.ZERO, BigDecimal::add);
+    BigDecimal roomsTotal =
+        scheme.getSchemeRooms().stream()
+            .map(this::calculateSchemeRoomPrice)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    return roomsTotal
+        .add(scheme.getTransportCost())
+        .add(scheme.getStagingCost())
+        .add(scheme.getDesignCost());
   }
 
   public BigDecimal calculateSchemeRoomPrice(SchemeRoom schemeRoom) {

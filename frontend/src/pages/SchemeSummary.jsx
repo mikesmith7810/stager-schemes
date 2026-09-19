@@ -7,94 +7,96 @@ function formatPrice(price) {
   return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(price ?? 0);
 }
 
-function PackBreakdown({ pack, onOpenLightbox }) {
-  return (
-    <div style={{ paddingLeft: '1rem', marginBottom: '0.5rem' }}>
-      <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{pack.packName}</div>
-      {pack.packItems.map((pi) => (
-        <div key={pi.itemId} className="line-item" style={{ fontSize: '0.88rem' }}>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <img
-              src={`/api/items/${pi.itemId}/image`}
-              className="item-thumbnail-sm"
-              alt=""
-              onClick={() => onOpenLightbox(pi.itemId)}
-              onError={(e) => { e.currentTarget.style.display = 'none'; }}
-            />
-            <span>{pi.itemName} &times; {pi.quantity}</span>
-          </div>
-          <span className="price-muted">{formatPrice(pi.itemPrice * pi.quantity)}</span>
-        </div>
-      ))}
-      <div
-        style={{
-          textAlign: 'right',
-          fontSize: '0.9rem',
-          fontWeight: 600,
-          paddingTop: '0.25rem',
-        }}
-      >
-        Pack total: {formatPrice(pack.packTotal)}
-      </div>
-    </div>
-  );
-}
-
 function SchemeRoomSummary({ room, onOpenLightbox }) {
+  const roomIncVat = room.roomTotal ?? 0;
+  const roomExVat = roomIncVat * 0.8;
+
   return (
     <div className="summary-section">
       <h2 className="summary-room-title">{room.name}</h2>
-
-      {room.items.length > 0 && (
-        <div style={{ marginBottom: '1rem' }}>
-          <p className="sub-section-title">Items</p>
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th style={{ width: '40px' }}></th>
-                <th>Item</th>
-                <th>Price</th>
-                <th>Qty</th>
-                <th>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {room.items.map((item) => (
-                <tr key={item.id}>
-                  <td>
-                    <img
-                      src={`/api/items/${item.itemId}/image`}
-                      className="item-thumbnail-sm"
-                      alt=""
-                      onClick={() => onOpenLightbox(item.itemId)}
-                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                    />
-                  </td>
-                  <td>{item.itemName}</td>
-                  <td>{formatPrice(item.itemPrice)}</td>
-                  <td>{item.quantity}</td>
-                  <td>
-                    <span className="price">{formatPrice(item.lineTotal)}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {room.packs.length > 0 && (
-        <div>
-          <p className="sub-section-title">Packs</p>
-          {room.packs.map((pack) => (
-            <PackBreakdown key={pack.id} pack={pack} onOpenLightbox={onOpenLightbox} />
+      <table className="data-table">
+        <thead>
+          <tr>
+            <th style={{ width: '36px' }}></th>
+            <th>Item</th>
+            <th style={{ textAlign: 'right' }}>Qty</th>
+            <th style={{ textAlign: 'right' }}>Ex VAT</th>
+            <th style={{ textAlign: 'right' }}>Inc VAT</th>
+          </tr>
+        </thead>
+        <tbody>
+          {room.items.map((item) => (
+            <tr key={item.itemId}>
+              <td>
+                <img
+                  src={`/api/items/${item.itemId}/image`}
+                  className="item-thumbnail-sm"
+                  alt=""
+                  onClick={() => onOpenLightbox(item.itemId)}
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+              </td>
+              <td>{item.itemName}</td>
+              <td style={{ textAlign: 'right' }}>{item.quantity}</td>
+              <td style={{ textAlign: 'right' }}>{formatPrice(item.lineTotal * 0.8)}</td>
+              <td style={{ textAlign: 'right' }}>{formatPrice(item.lineTotal)}</td>
+            </tr>
           ))}
-        </div>
-      )}
-
-      <div style={{ textAlign: 'right', marginTop: '0.5rem', fontWeight: 600 }}>
-        Room total: {formatPrice(room.roomTotal)}
-      </div>
+          {room.packs.flatMap((pack) => [
+            <tr key={`pack-header-${pack.packId}`}>
+              <td></td>
+              <td
+                colSpan={4}
+                style={{
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  color: 'var(--text-muted, #888)',
+                  paddingTop: '0.5rem',
+                }}
+              >
+                {pack.packName}
+              </td>
+            </tr>,
+            ...pack.packItems.map((pi) => (
+              <tr key={`pack-${pack.packId}-item-${pi.itemId}`}>
+                <td>
+                  <img
+                    src={`/api/items/${pi.itemId}/image`}
+                    className="item-thumbnail-sm"
+                    alt=""
+                    onClick={() => onOpenLightbox(pi.itemId)}
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
+                </td>
+                <td style={{ paddingLeft: '1rem' }}>{pi.itemName}</td>
+                <td style={{ textAlign: 'right' }}>{pi.quantity}</td>
+                <td style={{ textAlign: 'right' }}>{formatPrice(pi.itemPrice * pi.quantity * 0.8)}</td>
+                <td style={{ textAlign: 'right' }}>{formatPrice(pi.itemPrice * pi.quantity)}</td>
+              </tr>
+            )),
+          ])}
+        </tbody>
+        <tfoot>
+          <tr style={{ fontWeight: 600 }}>
+            <td
+              colSpan={3}
+              style={{ textAlign: 'right', paddingTop: '0.5rem', borderTop: '2px solid var(--border, #e5e7eb)' }}
+            >
+              Room Total
+            </td>
+            <td
+              style={{ textAlign: 'right', paddingTop: '0.5rem', borderTop: '2px solid var(--border, #e5e7eb)' }}
+            >
+              {formatPrice(roomExVat)}
+            </td>
+            <td
+              style={{ textAlign: 'right', paddingTop: '0.5rem', borderTop: '2px solid var(--border, #e5e7eb)' }}
+            >
+              {formatPrice(roomIncVat)}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
     </div>
   );
 }
@@ -118,6 +120,13 @@ export default function SchemeSummary() {
   if (error) return <div className="error-msg">{error}</div>;
   if (!summary) return null;
 
+  const itemsIncVat = summary.rooms.reduce((s, r) => s + (r.roomTotal ?? 0), 0);
+  const itemsExVat = itemsIncVat * 0.8;
+  const totalVat = itemsIncVat * 0.2;
+  const otherCosts =
+    (summary.transportCost ?? 0) + (summary.stagingCost ?? 0) + (summary.designCost ?? 0);
+  const grandTotal = itemsExVat + otherCosts;
+
   return (
     <div>
       <div className="page-header screen-only">
@@ -129,9 +138,9 @@ export default function SchemeSummary() {
           <Link to={`/schemes/${id}/edit`} className="btn btn-secondary">
             Edit
           </Link>
-          <button className="btn btn-primary" onClick={() => window.print()}>
-            Print
-          </button>
+          <Link to={`/schemes/${id}/customer-summary`} className="btn btn-primary">
+            Print Customer Summary
+          </Link>
         </div>
       </div>
 
@@ -147,10 +156,42 @@ export default function SchemeSummary() {
         ))
       )}
 
-      <div className="summary-total-bar">
-        <span>Total</span>
-        <span>{formatPrice(summary.totalPrice)}</span>
+      {summary.rooms.length > 0 && (
+        <div className="summary-section">
+          <div className="line-item" style={{ fontWeight: 600 }}>
+            <span>Items Total Ex VAT</span>
+            <span className="price">{formatPrice(itemsExVat)}</span>
+          </div>
+          <div className="line-item" style={{ fontWeight: 600 }}>
+            <span>Items VAT</span>
+            <span className="price">{formatPrice(totalVat)}</span>
+          </div>
+          <div className="line-item" style={{ fontWeight: 600 }}>
+            <span>Items Total Inc VAT</span>
+            <span className="price">{formatPrice(itemsIncVat)}</span>
+          </div>
+        </div>
+      )}
+
+      <div className="summary-section">
+        <h2 className="summary-room-title">Other Costs</h2>
+        {[
+          { label: 'Transport', value: summary.transportCost },
+          { label: 'Staging', value: summary.stagingCost },
+          { label: 'Design', value: summary.designCost },
+        ].map(({ label, value }) => (
+          <div key={label} className="line-item">
+            <span>{label}</span>
+            <span className="price">{formatPrice(value ?? 0)}</span>
+          </div>
+        ))}
       </div>
+
+      <div className="summary-total-bar">
+        <span>Total (Items Ex VAT + Other Costs)</span>
+        <span>{formatPrice(grandTotal)}</span>
+      </div>
+
       <Lightbox itemId={lightboxItemId} onClose={() => setLightboxItemId(null)} />
     </div>
   );

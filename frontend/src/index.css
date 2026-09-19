@@ -626,20 +626,201 @@ a:hover {
   cursor: pointer;
 }
 
-.lightbox-img {
-  max-width: 90vw;
-  max-height: 90vh;
-  border-radius: var(--radius);
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+.lightbox-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
   cursor: default;
 }
 
+.lightbox-img-wrap {
+  position: relative;
+  line-height: 0;
+}
+
+.lightbox-img-wrap.preview {
+  border-radius: var(--radius);
+  background-image: repeating-conic-gradient(#999 0% 25%, #fff 0% 50%);
+  background-size: 14px 14px;
+}
+
+.lightbox-img {
+  max-width: 90vw;
+  max-height: 80vh;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+  display: block;
+}
+
+.lightbox-processing {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: var(--radius);
+}
+
+.lightbox-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.lightbox-error {
+  color: #ff6b6b;
+  font-size: 0.85rem;
+}
+
+/* Mood Board */
+
+.moodboard-overlay {
+  position: fixed;
+  inset: 0;
+  background: #ffffff;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+}
+
+.moodboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 2px solid var(--color-aqua);
+  background: var(--color-sage);
+  flex-shrink: 0;
+}
+
+.moodboard-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-teal);
+}
+
+.moodboard-canvas {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.moodboard-tile {
+  position: absolute;
+  cursor: grab;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+}
+
+.moodboard-tile:active {
+  cursor: grabbing;
+}
+
+.moodboard-img {
+  width: 100%;
+  flex: 1;
+  object-fit: contain;
+  display: block;
+  pointer-events: none;
+  min-height: 0;
+}
+
+.moodboard-resize-handle {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 14px;
+  height: 14px;
+  cursor: se-resize;
+  opacity: 0;
+  transition: opacity 0.15s;
+  border-right: 3px solid var(--color-teal);
+  border-bottom: 3px solid var(--color-teal);
+  border-radius: 0 0 2px 0;
+}
+
+.moodboard-tile:hover .moodboard-resize-handle {
+  opacity: 0.6;
+}
+
+/* Customer Summary */
+
+.cs-col-header {
+  display: grid;
+  grid-template-columns: 1fr 130px 110px;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-muted, #888);
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  margin-bottom: 0.25rem;
+}
+
+.cs-row {
+  display: grid;
+  grid-template-columns: 1fr 130px 110px;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.3rem 0;
+  font-size: 0.95rem;
+}
+
+.cs-row-indent {
+  padding-left: 1rem;
+}
+
+.cs-pack-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-muted, #888);
+  padding: 0.5rem 0 0.1rem;
+}
+
+.cs-totals {
+  margin-top: 1.5rem;
+  padding-top: 0.75rem;
+  border-top: 2px solid var(--border, #e5e7eb);
+  max-width: 460px;
+  margin-left: auto;
+}
+
+.cs-total-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+  font-weight: 600;
+  gap: 1rem;
+}
+
+.cs-grand-total {
+  font-size: 1.1rem;
+  border-top: 1px solid var(--border, #e5e7eb);
+  padding-top: 0.5rem;
+  margin-top: 0.25rem;
+}
+
 /* Print */
+
+.print-only {
+  display: none;
+}
 
 @media print {
   .nav,
   .screen-only {
     display: none !important;
+  }
+
+  .print-only {
+    display: inline !important;
   }
 
   .main {
@@ -649,5 +830,19 @@ a:hover {
 
   body {
     background: white;
+  }
+
+  body.moodboard-printing .moodboard-overlay {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: auto !important;
+    height: auto !important;
+  }
+
+  body.moodboard-printing .moodboard-canvas {
+    overflow: visible !important;
+    flex: none !important;
   }
 }

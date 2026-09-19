@@ -4,4 +4,10 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public record SchemeSummaryResponse(
-    Long id, String name, List<SchemeRoomSummary> rooms, BigDecimal totalPrice) {}
+    Long id,
+    String name,
+    List<SchemeRoomSummary> rooms,
+    BigDecimal totalPrice,
+    BigDecimal transportCost,
+    BigDecimal stagingCost,
+    BigDecimal designCost) {}

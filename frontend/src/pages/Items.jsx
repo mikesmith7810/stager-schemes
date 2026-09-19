@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { itemsApi } from '../api/items.js';
+import Lightbox from '../components/Lightbox.jsx';
 
 function formatPrice(price) {
   return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(price ?? 0);
@@ -299,7 +300,7 @@ export default function Items() {
           <table className="data-table">
             <thead>
               <tr>
-                <th style={{ width: '64px' }}>Image</th>
+                <th>Image</th>
                 <th>Name</th>
                 <th>Price</th>
                 <th>Web Link</th>
@@ -393,16 +394,13 @@ export default function Items() {
         </div>
       )}
 
-      {lightboxItemId && lightboxItemId !== '__preview__' && (
-        <div className="lightbox-overlay" onClick={() => setLightboxItemId(null)}>
-          <img
-            src={`/api/items/${lightboxItemId}/image`}
-            className="lightbox-img"
-            alt="Item image"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      )}
+      <Lightbox
+        itemId={lightboxItemId !== '__preview__' ? lightboxItemId : null}
+        onClose={() => setLightboxItemId(null)}
+        onImageUpdated={(id) =>
+          setImageVersion((prev) => ({ ...prev, [id]: (prev[id] || 0) + 1 }))
+        }
+      />
 
       {lightboxItemId === '__preview__' && pendingImagePreview && (
         <div className="lightbox-overlay" onClick={() => setLightboxItemId(null)}>
