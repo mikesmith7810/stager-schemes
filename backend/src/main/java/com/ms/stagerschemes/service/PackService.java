@@ -9,6 +9,7 @@ import com.ms.stagerschemes.model.PackItem;
 import com.ms.stagerschemes.repository.ItemRepository;
 import com.ms.stagerschemes.repository.PackItemRepository;
 import com.ms.stagerschemes.repository.PackRepository;
+import com.ms.stagerschemes.repository.SchemeRoomPackRepository;
 import java.util.List;
 import java.util.NoSuchElementException;
 import org.springframework.stereotype.Service;
@@ -20,14 +21,17 @@ public class PackService {
   private final PackRepository packRepository;
   private final PackItemRepository packItemRepository;
   private final ItemRepository itemRepository;
+  private final SchemeRoomPackRepository schemeRoomPackRepository;
 
   public PackService(
       PackRepository packRepository,
       PackItemRepository packItemRepository,
-      ItemRepository itemRepository) {
+      ItemRepository itemRepository,
+      SchemeRoomPackRepository schemeRoomPackRepository) {
     this.packRepository = packRepository;
     this.packItemRepository = packItemRepository;
     this.itemRepository = itemRepository;
+    this.schemeRoomPackRepository = schemeRoomPackRepository;
   }
 
   @Transactional(readOnly = true)
@@ -67,6 +71,7 @@ public class PackService {
     if (!packRepository.existsById(packId)) {
       throw new NoSuchElementException("Pack not found: " + packId);
     }
+    schemeRoomPackRepository.deleteAllByPackId(packId);
     packRepository.deleteById(packId);
   }
 
@@ -91,7 +96,7 @@ public class PackService {
             .filter(pi -> pi.getItem().getId().equals(itemId))
             .findFirst()
             .orElseThrow(() -> new NoSuchElementException("Item not in pack: " + itemId));
-    packItemRepository.delete(packItem);
+    pack.getPackItems().remove(packItem);
   }
 
   private void addItemToPackInternal(Pack pack, PackItemRequest packItemRequest) {

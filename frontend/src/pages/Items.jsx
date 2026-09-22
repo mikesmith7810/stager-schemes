@@ -4,6 +4,7 @@ import Lightbox from '../components/Lightbox.jsx';
 
 const CATEGORIES = [
   'Beds',
+  'Wardrobes',
   'Appliances',
   'Chairs',
   'Tables',

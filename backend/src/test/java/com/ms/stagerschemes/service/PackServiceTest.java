@@ -15,6 +15,7 @@ import com.ms.stagerschemes.model.PackItem;
 import com.ms.stagerschemes.repository.ItemRepository;
 import com.ms.stagerschemes.repository.PackItemRepository;
 import com.ms.stagerschemes.repository.PackRepository;
+import com.ms.stagerschemes.repository.SchemeRoomPackRepository;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -31,12 +32,13 @@ class PackServiceTest {
   @Mock private PackRepository packRepository;
   @Mock private PackItemRepository packItemRepository;
   @Mock private ItemRepository itemRepository;
+  @Mock private SchemeRoomPackRepository schemeRoomPackRepository;
 
   private PackService packService;
 
   @BeforeEach
   void setUp() {
-    packService = new PackService(packRepository, packItemRepository, itemRepository);
+    packService = new PackService(packRepository, packItemRepository, itemRepository, schemeRoomPackRepository);
   }
 
   @Test
@@ -98,6 +100,7 @@ class PackServiceTest {
 
     packService.deletePack(1L);
 
+    verify(schemeRoomPackRepository).deleteAllByPackId(1L);
     verify(packRepository).deleteById(1L);
   }
 
@@ -125,17 +128,16 @@ class PackServiceTest {
   }
 
   @Test
-  void removeItemFromPack_itemInPack_deletesPackItem() {
+  void removeItemFromPack_itemInPack_removesPackItemFromCollection() {
     Pack pack = new Pack("Pack");
     Item chair = new Item("Chair", new BigDecimal("100.00"), null, null);
     PackItem packItem = new PackItem(pack, chair, 1);
     pack.getPackItems().add(packItem);
 
     when(packRepository.findById(1L)).thenReturn(Optional.of(pack));
-    when(itemRepository.findById(any())).thenReturn(Optional.of(chair));
 
     packService.removeItemFromPack(1L, chair.getId());
 
-    verify(packItemRepository).delete(packItem);
+    assertThat(pack.getPackItems()).isEmpty();
   }
 }

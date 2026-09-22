@@ -129,7 +129,7 @@ class RoomServiceTest {
   }
 
   @Test
-  void removeItemFromRoom_itemInRoom_deletesRoomItem() {
+  void removeItemFromRoom_itemInRoom_removesRoomItemFromCollection() {
     Room room = new Room("Living Room");
     Item sofa = new Item("Sofa", new BigDecimal("400.00"), null, null);
     RoomItem roomItem = new RoomItem(room, sofa, 1);
@@ -138,7 +138,7 @@ class RoomServiceTest {
 
     roomService.removeItemFromRoom(1L, sofa.getId());
 
-    verify(roomItemRepository).delete(roomItem);
+    assertThat(room.getRoomItems()).isEmpty();
   }
 
   @Test
@@ -156,7 +156,7 @@ class RoomServiceTest {
   }
 
   @Test
-  void removePackFromRoom_packInRoom_deletesRoomPack() {
+  void removePackFromRoom_packInRoom_removesRoomPackFromCollection() {
     Room room = new Room("Living Room");
     Pack pack = new Pack("Furniture Pack");
     RoomPack roomPack = new RoomPack(room, pack, 1);
@@ -165,6 +165,6 @@ class RoomServiceTest {
 
     roomService.removePackFromRoom(1L, pack.getId());
 
-    verify(roomPackRepository).delete(roomPack);
+    assertThat(room.getRoomPacks()).isEmpty();
   }
 }

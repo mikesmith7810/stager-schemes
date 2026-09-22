@@ -105,7 +105,7 @@ public class RoomService {
             .filter(ri -> ri.getItem().getId().equals(itemId))
             .findFirst()
             .orElseThrow(() -> new NoSuchElementException("Item not in room: " + itemId));
-    roomItemRepository.delete(roomItem);
+    room.getRoomItems().remove(roomItem);
   }
 
   @Transactional
@@ -129,7 +129,7 @@ public class RoomService {
             .filter(rp -> rp.getPack().getId().equals(packId))
             .findFirst()
             .orElseThrow(() -> new NoSuchElementException("Pack not in room: " + packId));
-    roomPackRepository.delete(roomPack);
+    room.getRoomPacks().remove(roomPack);
   }
 
   private void addItemToRoomInternal(Room room, RoomItemRequest roomItemRequest) {
