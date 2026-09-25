@@ -22,6 +22,9 @@ public interface ItemApi {
   @GetMapping
   ResponseEntity<List<ItemResponse>> findAllItems();
 
+  @GetMapping("/bin")
+  ResponseEntity<List<ItemResponse>> findBinItems();
+
   @GetMapping("/{itemId}")
   ResponseEntity<ItemResponse> findItemById(@PathVariable Long itemId);
 
@@ -34,6 +37,12 @@ public interface ItemApi {
 
   @DeleteMapping("/{itemId}")
   ResponseEntity<Void> deleteItem(@PathVariable Long itemId);
+
+  @PutMapping("/{itemId}/restore")
+  ResponseEntity<Void> restoreItem(@PathVariable Long itemId);
+
+  @DeleteMapping("/bin")
+  ResponseEntity<Void> emptyBin();
 
   @PostMapping(value = "/{itemId}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   ResponseEntity<Void> uploadImage(

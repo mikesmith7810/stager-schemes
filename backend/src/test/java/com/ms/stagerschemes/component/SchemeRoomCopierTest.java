@@ -56,8 +56,8 @@ class SchemeRoomCopierTest {
   void copyRoomToScheme_copiesAllRoomItemsAsSchemeRoomItems() {
     Scheme scheme = new Scheme("Test Scheme");
     Room room = new Room("Living Room");
-    Item chair = new Item("Chair", new java.math.BigDecimal("100.00"), null, null);
-    Item lamp = new Item("Lamp", new java.math.BigDecimal("50.00"), null, null);
+    Item chair = new Item("Chair", new java.math.BigDecimal("100.00"), null, null, null, null);
+    Item lamp = new Item("Lamp", new java.math.BigDecimal("50.00"), null, null, null, null);
     room.getRoomItems().add(new RoomItem(room, chair, 2));
     room.getRoomItems().add(new RoomItem(room, lamp, 1));
 

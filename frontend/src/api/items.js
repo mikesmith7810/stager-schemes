@@ -2,9 +2,12 @@ import { apiClient } from './client.js';
 
 export const itemsApi = {
   findAll: () => apiClient.get('/items'),
+  findDeleted: () => apiClient.get('/items/bin'),
   create: (item) => apiClient.post('/items', item),
   update: (id, item) => apiClient.put(`/items/${id}`, item),
   delete: (id) => apiClient.delete(`/items/${id}`),
+  restore: (id) => apiClient.put(`/items/${id}/restore`, {}),
+  emptyBin: () => apiClient.delete('/items/bin'),
 
   uploadImage: async (id, file) => {
     const formData = new FormData();

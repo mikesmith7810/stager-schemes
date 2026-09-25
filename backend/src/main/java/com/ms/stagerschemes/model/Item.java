@@ -28,13 +28,24 @@ public class Item {
   @Column(length = 64)
   private String category;
 
+  @Column(length = 255)
+  private String supplier;
+
+  @Column(length = 128)
+  private String colour;
+
+  @Column(nullable = false)
+  private boolean deleted = false;
+
   protected Item() {}
 
-  public Item(String name, BigDecimal price, String webLink, String category) {
+  public Item(String name, BigDecimal price, String webLink, String category, String supplier, String colour) {
     this.name = name;
     this.price = price;
     this.webLink = webLink;
     this.category = category;
+    this.supplier = supplier;
+    this.colour = colour;
   }
 
   public Long getId() {
@@ -71,5 +82,29 @@ public class Item {
 
   public void setCategory(String category) {
     this.category = category;
+  }
+
+  public String getSupplier() {
+    return supplier;
+  }
+
+  public void setSupplier(String supplier) {
+    this.supplier = supplier;
+  }
+
+  public String getColour() {
+    return colour;
+  }
+
+  public void setColour(String colour) {
+    this.colour = colour;
+  }
+
+  public boolean isDeleted() {
+    return deleted;
+  }
+
+  public void setDeleted(boolean deleted) {
+    this.deleted = deleted;
   }
 }

@@ -1,24 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { itemsApi } from '../api/items.js';
+import { categoriesApi } from '../api/categories.js';
+import { suppliersApi } from '../api/suppliers.js';
+import { coloursApi } from '../api/colours.js';
 import Lightbox from '../components/Lightbox.jsx';
 
-const CATEGORIES = [
-  'Beds',
-  'Wardrobes',
-  'Appliances',
-  'Chairs',
-  'Tables',
-  'Lamps',
-  'Soft Furnishings',
-  'Kitchen',
-  'Plants',
-  'Artwork',
-  'Mirrors',
-];
-const CATEGORY_ORDER = [...CATEGORIES, 'Unassigned'];
-
-function resolvedCategory(item) {
-  return item.category && CATEGORIES.includes(item.category) ? item.category : 'Unassigned';
+function resolvedCategory(item, categoryNames) {
+  return item.category && categoryNames.includes(item.category) ? item.category : 'Unassigned';
 }
 
 function formatPrice(price) {
@@ -27,16 +16,23 @@ function formatPrice(price) {
 
 export default function Items() {
   const [items, setItems] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
+  const [colours, setColours] = useState([]);
   const [error, setError] = useState(null);
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [webLink, setWebLink] = useState('');
   const [category, setCategory] = useState('');
+  const [supplier, setSupplier] = useState('');
+  const [colour, setColour] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
   const [editPrice, setEditPrice] = useState('');
   const [editWebLink, setEditWebLink] = useState('');
   const [editCategory, setEditCategory] = useState('');
+  const [editSupplier, setEditSupplier] = useState('');
+  const [editColour, setEditColour] = useState('');
   const [pasteTargetId, setPasteTargetId] = useState(null);
   const [lightboxItemId, setLightboxItemId] = useState(null);
   const [imageVersion, setImageVersion] = useState({});
@@ -51,6 +47,9 @@ export default function Items() {
 
   useEffect(() => {
     load();
+    categoriesApi.findAll().then(setCategories).catch((err) => setError(err.message));
+    suppliersApi.findAll().then(setSuppliers).catch((err) => setError(err.message));
+    coloursApi.findAll().then(setColours).catch((err) => setError(err.message));
   }, []);
 
   useEffect(() => {
@@ -139,6 +138,8 @@ export default function Items() {
         price: parseFloat(price),
         webLink: webLink || null,
         category: category || null,
+        supplier: supplier || null,
+        colour: colour || null,
       });
       if (pendingImage) {
         await itemsApi.uploadImage(created.id, pendingImage);
@@ -148,6 +149,8 @@ export default function Items() {
       setPrice('');
       setWebLink('');
       setCategory('');
+      setSupplier('');
+      setColour('');
       setFormPasteActive(false);
       load();
     } catch (err) {
@@ -161,6 +164,8 @@ export default function Items() {
     setEditPrice(String(item.price));
     setEditWebLink(item.webLink ?? '');
     setEditCategory(item.category ?? '');
+    setEditSupplier(item.supplier ?? '');
+    setEditColour(item.colour ?? '');
   };
 
   const handleSaveEdit = async (id) => {
@@ -171,6 +176,8 @@ export default function Items() {
         price: parseFloat(editPrice),
         webLink: editWebLink || null,
         category: editCategory || null,
+        supplier: editSupplier || null,
+        colour: editColour || null,
       });
       setEditingId(null);
       load();
@@ -245,21 +252,25 @@ export default function Items() {
     );
   };
 
+  const categoryNames = categories.map((c) => c.name);
+  const categoryOrder = [...categoryNames, 'Unassigned'];
+
   const grouped = {};
   for (const item of items) {
-    const cat = resolvedCategory(item);
+    const cat = resolvedCategory(item, categoryNames);
     if (!grouped[cat]) grouped[cat] = [];
     grouped[cat].push(item);
   }
   for (const cat of Object.keys(grouped)) {
     grouped[cat].sort((a, b) => a.name.localeCompare(b.name));
   }
-  const categoriesToShow = CATEGORY_ORDER.filter((cat) => grouped[cat]?.length > 0);
+  const categoriesToShow = categoryOrder.filter((cat) => grouped[cat]?.length > 0);
 
   return (
     <div>
       <div className="page-header">
         <h1 className="page-title">Items</h1>
+        <Link to="/items/bin" className="btn btn-ghost btn-sm">Bin</Link>
       </div>
 
       {error && <div className="error-msg">{error}</div>}
@@ -292,8 +303,8 @@ export default function Items() {
           <label className="field-label">Category</label>
           <select className="select" value={category} onChange={(e) => setCategory(e.target.value)}>
             <option value="">Unassigned</option>
-            {CATEGORIES.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.name}>{cat.name}</option>
             ))}
           </select>
         </div>
@@ -306,6 +317,24 @@ export default function Items() {
             onChange={(e) => setWebLink(e.target.value)}
             placeholder="https://…"
           />
+        </div>
+        <div className="field">
+          <label className="field-label">Supplier</label>
+          <select className="select" value={supplier} onChange={(e) => setSupplier(e.target.value)}>
+            <option value="">—</option>
+            {suppliers.map((s) => (
+              <option key={s.id} value={s.name}>{s.name}</option>
+            ))}
+          </select>
+        </div>
+        <div className="field">
+          <label className="field-label">Colour</label>
+          <select className="select" value={colour} onChange={(e) => setColour(e.target.value)}>
+            <option value="">—</option>
+            {colours.map((c) => (
+              <option key={c.id} value={c.name}>{c.name}</option>
+            ))}
+          </select>
         </div>
         <div className="field">
           <label className="field-label">Image</label>
@@ -360,6 +389,8 @@ export default function Items() {
                     <th>Price</th>
                     <th>Category</th>
                     <th>Web Link</th>
+                    <th>Supplier</th>
+                    <th>Colour</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -392,8 +423,8 @@ export default function Items() {
                             onChange={(e) => setEditCategory(e.target.value)}
                           >
                             <option value="">Unassigned</option>
-                            {CATEGORIES.map((c) => (
-                              <option key={c} value={c}>{c}</option>
+                            {categories.map((c) => (
+                              <option key={c.id} value={c.name}>{c.name}</option>
                             ))}
                           </select>
                         </td>
@@ -404,6 +435,30 @@ export default function Items() {
                             value={editWebLink}
                             onChange={(e) => setEditWebLink(e.target.value)}
                           />
+                        </td>
+                        <td>
+                          <select
+                            className="select"
+                            value={editSupplier}
+                            onChange={(e) => setEditSupplier(e.target.value)}
+                          >
+                            <option value="">—</option>
+                            {suppliers.map((s) => (
+                              <option key={s.id} value={s.name}>{s.name}</option>
+                            ))}
+                          </select>
+                        </td>
+                        <td>
+                          <select
+                            className="select"
+                            value={editColour}
+                            onChange={(e) => setEditColour(e.target.value)}
+                          >
+                            <option value="">—</option>
+                            {colours.map((c) => (
+                              <option key={c.id} value={c.name}>{c.name}</option>
+                            ))}
+                          </select>
                         </td>
                         <td>
                           <div className="td-actions">
@@ -440,6 +495,12 @@ export default function Items() {
                           ) : (
                             <span className="price-muted">—</span>
                           )}
+                        </td>
+                        <td>
+                          {item.supplier ? item.supplier : <span className="price-muted">—</span>}
+                        </td>
+                        <td>
+                          {item.colour ? item.colour : <span className="price-muted">—</span>}
                         </td>
                         <td>
                           <div className="td-actions">

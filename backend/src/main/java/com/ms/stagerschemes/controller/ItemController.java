@@ -28,6 +28,11 @@ public class ItemController implements ItemApi {
   }
 
   @Override
+  public ResponseEntity<List<ItemResponse>> findBinItems() {
+    return ResponseEntity.ok(itemService.findBinItems());
+  }
+
+  @Override
   public ResponseEntity<ItemResponse> findItemById(Long itemId) {
     return ResponseEntity.ok(itemService.findItemById(itemId));
   }
@@ -45,6 +50,18 @@ public class ItemController implements ItemApi {
   @Override
   public ResponseEntity<Void> deleteItem(Long itemId) {
     itemService.deleteItem(itemId);
+    return ResponseEntity.noContent().build();
+  }
+
+  @Override
+  public ResponseEntity<Void> restoreItem(Long itemId) {
+    itemService.restoreItem(itemId);
+    return ResponseEntity.noContent().build();
+  }
+
+  @Override
+  public ResponseEntity<Void> emptyBin() {
+    itemService.emptyBin();
     return ResponseEntity.noContent().build();
   }
 

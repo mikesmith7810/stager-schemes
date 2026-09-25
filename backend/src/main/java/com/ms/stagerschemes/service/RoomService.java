@@ -16,6 +16,7 @@ import com.ms.stagerschemes.repository.RoomPackRepository;
 import com.ms.stagerschemes.repository.RoomRepository;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -102,7 +103,7 @@ public class RoomService {
             .orElseThrow(() -> new NoSuchElementException("Room not found: " + roomId));
     RoomItem roomItem =
         room.getRoomItems().stream()
-            .filter(ri -> ri.getItem().getId().equals(itemId))
+            .filter(ri -> Objects.equals(ri.getItem().getId(), itemId))
             .findFirst()
             .orElseThrow(() -> new NoSuchElementException("Item not in room: " + itemId));
     room.getRoomItems().remove(roomItem);
@@ -126,7 +127,7 @@ public class RoomService {
             .orElseThrow(() -> new NoSuchElementException("Room not found: " + roomId));
     RoomPack roomPack =
         room.getRoomPacks().stream()
-            .filter(rp -> rp.getPack().getId().equals(packId))
+            .filter(rp -> Objects.equals(rp.getPack().getId(), packId))
             .findFirst()
             .orElseThrow(() -> new NoSuchElementException("Pack not in room: " + packId));
     room.getRoomPacks().remove(roomPack);

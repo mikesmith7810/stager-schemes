@@ -12,6 +12,8 @@ import CustomerSummary from './pages/CustomerSummary.jsx';
 import Rooms from './pages/Rooms.jsx';
 import Packs from './pages/Packs.jsx';
 import Items from './pages/Items.jsx';
+import Bin from './pages/Bin.jsx';
+import Admin from './pages/Admin.jsx';
 
 function Layout({ onLogout, username }) {
   return (
@@ -70,7 +72,9 @@ export default function App() {
             <Route path="/schemes/:id/customer-summary" element={<CustomerSummary />} />
             <Route path="/rooms" element={<Rooms />} />
             <Route path="/packs" element={<Packs />} />
+            <Route path="/items/bin" element={<Bin />} />
             <Route path="/items" element={<Items />} />
+            <Route path="/admin" element={<Admin />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

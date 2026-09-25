@@ -28,6 +28,7 @@ import com.ms.stagerschemes.repository.SchemeRoomRepository;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -182,7 +183,7 @@ public class SchemeService {
         schemeRoomRepository
             .findById(schemeRoomId)
             .orElseThrow(() -> new NoSuchElementException("SchemeRoom not found: " + schemeRoomId));
-    if (!schemeRoom.getScheme().getId().equals(schemeId)) {
+    if (!Objects.equals(schemeRoom.getScheme().getId(), schemeId)) {
       throw new IllegalArgumentException(
           "SchemeRoom " + schemeRoomId + " does not belong to scheme " + schemeId);
     }

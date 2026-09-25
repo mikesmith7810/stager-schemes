@@ -12,6 +12,7 @@ import com.ms.stagerschemes.repository.PackRepository;
 import com.ms.stagerschemes.repository.SchemeRoomPackRepository;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -93,7 +94,7 @@ public class PackService {
             .orElseThrow(() -> new NoSuchElementException("Pack not found: " + packId));
     PackItem packItem =
         pack.getPackItems().stream()
-            .filter(pi -> pi.getItem().getId().equals(itemId))
+            .filter(pi -> Objects.equals(pi.getItem().getId(), itemId))
             .findFirst()
             .orElseThrow(() -> new NoSuchElementException("Item not in pack: " + itemId));
     pack.getPackItems().remove(packItem);

@@ -11,8 +11,6 @@ import com.ms.stagerschemes.repository.PackItemRepository;
 import com.ms.stagerschemes.repository.RoomItemRepository;
 import com.ms.stagerschemes.repository.SchemeRoomItemRepository;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -44,11 +42,21 @@ public class ItemService {
 
   @Transactional(readOnly = true)
   public List<ItemResponse> findAllItems() {
-    List<Item> items = itemRepository.findAll();
+    List<Item> items = itemRepository.findAllByDeletedFalse();
     List<Long> ids = items.stream().map(Item::getId).toList();
     Set<Long> idsWithImages = ids.isEmpty() ? Set.of() : itemImageRepository.findExistingIds(ids);
     return items.stream()
-        .map(item -> ItemResponse.from(item, idsWithImages.contains(item.getId())))
+        .map(item -> ItemResponse.from(item, item.getId() != null && idsWithImages.contains(item.getId())))
+        .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public List<ItemResponse> findBinItems() {
+    List<Item> items = itemRepository.findAllByDeletedTrue();
+    List<Long> ids = items.stream().map(Item::getId).toList();
+    Set<Long> idsWithImages = ids.isEmpty() ? Set.of() : itemImageRepository.findExistingIds(ids);
+    return items.stream()
+        .map(item -> ItemResponse.from(item, item.getId() != null && idsWithImages.contains(item.getId())))
         .toList();
   }
 
@@ -65,7 +73,7 @@ public class ItemService {
   public ItemResponse createItem(ItemRequest itemRequest) {
     Item savedItem =
         itemRepository.save(
-            new Item(itemRequest.name(), itemRequest.price(), itemRequest.webLink(), itemRequest.category()));
+            new Item(itemRequest.name(), itemRequest.price(), itemRequest.webLink(), itemRequest.category(), itemRequest.supplier(), itemRequest.colour()));
     return ItemResponse.from(savedItem, false);
   }
 
@@ -79,48 +87,41 @@ public class ItemService {
     item.setPrice(itemRequest.price());
     item.setWebLink(itemRequest.webLink());
     item.setCategory(itemRequest.category());
+    item.setSupplier(itemRequest.supplier());
+    item.setColour(itemRequest.colour());
     return ItemResponse.from(itemRepository.save(item), itemImageRepository.existsById(itemId));
   }
 
   @Transactional
   public void deleteItem(Long itemId) {
-    if (!itemRepository.existsById(itemId)) {
-      throw new NoSuchElementException("Item not found: " + itemId);
+    Item item =
+        itemRepository
+            .findById(itemId)
+            .orElseThrow(() -> new NoSuchElementException("Item not found: " + itemId));
+    item.setDeleted(true);
+    itemRepository.save(item);
+  }
+
+  @Transactional
+  public void restoreItem(Long itemId) {
+    Item item =
+        itemRepository
+            .findById(itemId)
+            .orElseThrow(() -> new NoSuchElementException("Item not found: " + itemId));
+    item.setDeleted(false);
+    itemRepository.save(item);
+  }
+
+  @Transactional
+  public void emptyBin() {
+    List<Item> binItems = itemRepository.findAllByDeletedTrue();
+    for (Item item : binItems) {
+      roomItemRepository.deleteAll(roomItemRepository.findByItemId(item.getId()));
+      packItemRepository.deleteAll(packItemRepository.findByItemId(item.getId()));
+      schemeRoomItemRepository.deleteAll(schemeRoomItemRepository.findByItemId(item.getId()));
+      itemImageRepository.findById(item.getId()).ifPresent(itemImageRepository::delete);
+      itemRepository.delete(item);
     }
-    List<String> roomNames =
-        roomItemRepository.findByItemId(itemId).stream()
-            .map(roomItem -> roomItem.getRoom().getName())
-            .distinct()
-            .sorted()
-            .toList();
-    List<String> packNames =
-        packItemRepository.findByItemId(itemId).stream()
-            .map(packItem -> packItem.getPack().getName())
-            .distinct()
-            .sorted()
-            .toList();
-    List<String> schemeNames =
-        schemeRoomItemRepository.findByItemId(itemId).stream()
-            .map(sri -> sri.getSchemeRoom().getScheme().getName())
-            .distinct()
-            .sorted()
-            .toList();
-    if (!roomNames.isEmpty() || !packNames.isEmpty() || !schemeNames.isEmpty()) {
-      List<String> parts = new ArrayList<>();
-      if (!roomNames.isEmpty()) {
-        parts.add("room template(s): " + String.join(", ", roomNames));
-      }
-      if (!packNames.isEmpty()) {
-        parts.add("pack(s): " + String.join(", ", packNames));
-      }
-      if (!schemeNames.isEmpty()) {
-        parts.add("scheme(s): " + String.join(", ", schemeNames));
-      }
-      throw new IllegalArgumentException(
-          "Cannot delete: this item is used in " + String.join("; ", parts) + ".");
-    }
-    itemImageRepository.findById(itemId).ifPresent(itemImageRepository::delete);
-    itemRepository.deleteById(itemId);
   }
 
   @Transactional

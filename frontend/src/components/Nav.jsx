@@ -38,6 +38,12 @@ export default function Nav({ onLogout, username }) {
             </NavLink>
           </div>
           <div className="nav-user">
+            <NavLink
+              to="/admin"
+              className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}
+            >
+              Admin
+            </NavLink>
             <button className="btn btn-ghost btn-sm" onClick={onLogout}>
               Sign out
             </button>

@@ -352,6 +352,36 @@ a:hover {
   margin-bottom: 1rem;
 }
 
+.undo-toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #1f2937;
+  color: #f9fafb;
+  border-radius: var(--radius);
+  padding: 0.65rem 1rem;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.undo-toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  background: #6b7280;
+  animation: undo-shrink 5s linear forwards;
+}
+
+@keyframes undo-shrink {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
 .empty-msg {
   color: var(--color-text-muted);
   font-size: 0.9rem;
